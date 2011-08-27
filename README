@@ -1,0 +1,153 @@
+= Python Bindings to Ed25519 Digital Signature System =
+
+This package provides python bindings to a C implementation of the Ed25519
+public-key signature system[1]. The C code is copied from the SUPERCOP
+benchmark suite[2], using the portable "ref" implementation (not the
+high-performance assembly code), and is very similar to the copy in the NaCl
+library[3]. The C code is in the public domain. This python binding is
+released under the MIT license.
+
+With this library, you can quickly (2ms) create signing+verifying keypairs,
+derive a verifying key from a signing key, sign messages, and verify the
+signatures. The keys and signatures are very short, making them easy to
+handle and incorporate into other protocols. All known attacks take at least
+2^128 operations, providing the same security level as AES-128, NIST P-256,
+and RSA-3072.
+
+
+== Dependencies ==
+
+This library includes a copy of all the C code necessary. You will need
+Python (probably 2.5 or later) and a C compiler.
+
+
+== Speed and Key Sizes ==
+
+Signing key seeds are merely 32 bytes of random data, so generating a signing
+key is trivial. Deriving a public verifying key takes more time, as do the
+actual signing and verifying operations.
+
+On my 2010-era Mac laptop (2.8GHz Core2Duo), deriving a verifying key takes
+1.9ms, signing takes 1.9ms, and verification takes 6.3ms. The
+high-performance assembly code in SUPERCOP (amd64-51-30k and amd64-64-24k) is
+up to 100x faster than the portable reference version, and the python
+overhead appears to be minimal (1-2us), so future releases may run even
+faster.
+
+Ed25519 private signing keys are 32 bytes long (this seed is expanded to 64
+bytes when necessary). The public verifying keys are also 32 bytes long.
+Signatures are 64 bytes long. All operations provide a 128-bit security
+level.
+
+
+== Testing ==
+
+The Ed25519 web site includes a (spectacularly slow) pure-python
+implementation for educational purposes. That code includes a set of
+known-answer-tests. Those tests are included in this distribution, and takes
+about 17 seconds to execute. The distribution also includes unit tests of the
+object-oriented SigningKey / VerifyingKey layer. Run test.py to execute these
+tests.
+
+
+== Security ==
+
+The Ed25519 algorithm and C implementation are carefully designed to prevent
+timing attacks. The Python wrapper might not preserve this property. Until it
+has been audited for this purpose, do not allow attackers to measure how long
+it takes you to generate a keypair or sign a message. Key generation depends
+upon a strong source of random numbers. Do not use it on a system where
+os.urandom() is weak.
+
+Unlike typical DSA/ECDSA algorithms, signing does *not* require a source of
+entropy. Ed25519 signatures are deterministic: using the same key to sign the
+same data any number of times will result in the same signature.
+
+
+== Compilation ==
+
+To build and install the library, run the normal setup.py command:
+
+ python ./setup.py build
+ sudo python ./setup.py install
+
+Once available on your $PYTHONPATH, you can run the test suite:
+
+ python test.py
+
+See the included Makefile for hints on running some simple benchmark tests.
+
+
+== Usage ==
+
+The first step is to create a signing key and store it. The safest way to
+generate a key is with the create_keypair, which internally reads directly
+from /dev/urandom:
+
+ import ed25519
+ from binascii import hexlify
+ signing_key, verifying_key = ed25519.create_keypair()
+ open("my-secret-key","wb").write(signing_key.to_string())
+ vkey_hex = hexlify(verifying_key.to_string())
+ print "the public key is", vkey_hex
+
+The private signing key string produced by to_string() is 64 bytes long, and
+includes a copy of the public key (to avoid the 1.9ms needed to recalculate
+it later). If you want to store less data (and recompute the public key
+later), you can store just the 32 byte seed instead.
+
+ open("my-secret-seed","wb").write(signing_key.to_seed())
+
+The signing key is an instance of the ed25519.SigningKey class. To
+reconstruct this instance from a serialized form, the constructor accepts the
+output of either .to_string() or .to_seed():
+
+ keydata = open("my-secret-key","rb").read()
+ signing_key = ed25519.SigningKey(keydata)
+
+ seed = open("my-secret-seed","rb").read()
+ signing_key2 = ed25519.SigningKey(seed)
+ assert signing_key == signing_key2
+
+Special-purpose applications may want to derive keypairs from existing
+secrets; any 32-byte long uniformly-distributed random string can be provided
+as a seed:
+
+ import os, hashlib
+ master = os.urandom(87)
+ seed = hashlib.sha256(master).digest()
+ signing_key = ed25519.SigningKey(seed)
+
+Once you have the SigningKey instance, use its .sign() method to sign a
+message:
+
+ sig = signing_key.sign("hello world")
+ print "sig is: ", hexlify(sig)
+
+On the verifying side, the receiver first needs to construct a
+ed25519.VerifyingKey instance from the serialized string, then use its
+.verify() method on the signature and message:
+
+ vkey_hex = "1246b84985e1ab5f83f4ec2bdf271114666fd3d9e24d12981a3c861b9ed523c6"
+ verifying_key = ed25519.VerifyingKey(vkey_hex)
+ try:
+   verifying_key.verify(sig, "hello world")
+   print "signature is good"
+ except ed25519.BadSignatureError:
+   print "signature is bad!"
+
+If you happen to have the SigningKey but not the corresponding VerifyingKey,
+you can derive it with .get_verifying_key(). This allows the sending side to
+hold just 32 bytes of data and derive everything else from that:
+
+ keydata = open("my-secret-seed","rb").read()
+ signing_key = ed25519.SigningKey(keydata)
+ verifying_key = signing_key.get_verifying_key()
+
+
+
+--footnotes--
+
+[1]: http://ed25519.cr.yp.to/
+[2]: http://bench.cr.yp.to/supercop.html
+[3]: http://nacl.cr.yp.to/
