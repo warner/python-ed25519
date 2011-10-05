@@ -85,7 +85,7 @@ generate a key is with the create_keypair, which internally reads directly
 from /dev/urandom:
 
  import ed25519
- from binascii import hexlify
+ from binascii import hexlify, unhexlify
  signing_key, verifying_key = ed25519.create_keypair()
  open("my-secret-key","wb").write(signing_key.to_string())
  vkey_hex = hexlify(verifying_key.to_string())
@@ -129,7 +129,7 @@ ed25519.VerifyingKey instance from the serialized string, then use its
 .verify() method on the signature and message:
 
  vkey_hex = "1246b84985e1ab5f83f4ec2bdf271114666fd3d9e24d12981a3c861b9ed523c6"
- verifying_key = ed25519.VerifyingKey(vkey_hex)
+ verifying_key = ed25519.VerifyingKey(unhexlify(vkey_hex))
  try:
    verifying_key.verify(sig, "hello world")
    print "signature is good"
