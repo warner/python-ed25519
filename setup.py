@@ -13,4 +13,5 @@ setup(name="ed25519",
       version="0.1",
       description="Ed25519 public-key signatures",
       ext_modules=[m],
+      py_modules=["ed25519"],
       )
