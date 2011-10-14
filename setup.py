@@ -14,4 +14,5 @@ setup(name="ed25519",
       description="Ed25519 public-key signatures",
       ext_modules=[m],
       py_modules=["ed25519"],
+      scripts=["bin/edsig"],
       )

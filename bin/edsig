@@ -1,0 +1,83 @@
+#! /usr/bin/python
+
+import sys
+from base64 import b32encode, b32decode
+import ed25519
+from hashlib import sha256
+
+def b2a(b):
+    return b32encode(b).lower().strip("=")
+def a2b(a):
+    a = a + "="*{0:0, 1:"X", 2:6, 3:"X", 4:4, 5:3, 6:"X", 7:1}[len(a)%8]
+    return b32decode(a.upper())
+
+def remove_prefix(prefix, s):
+    if not s.startswith(prefix):
+        raise ValueError("no prefix found")
+    return s[len(prefix):]
+
+def help():
+    print """\
+Usage:
+
+ edsig generate [STEM]
+   creates keypair, writes to 'STEM.signing.key' and 'STEM.verifying.key'
+   default is to 'signing.key' and 'verifying.key'
+
+ edsig sign signing.key message.file
+   prints signature to stdout
+
+ edsig verify verifying.key message.file SIGNATURE
+   prints 'good signature!' or raises exception
+"""
+
+if len(sys.argv) < 2:
+    help()
+elif sys.argv[1] == "generate":
+    sk,vk = ed25519.create_keypair()
+    if len(sys.argv) > 2:
+        sk_outfile = sys.argv[1]+".signing.key"
+        vk_outfile = sys.argv[1]+".verifying.key"
+    else:
+        sk_outfile = "signing.key"
+        vk_outfile = "verifying.key"
+    sk_s = "sign0-"+b32encode(sk.to_seed()).lower().strip("=")
+    vk_s = "verf0-"+b32encode(vk.to_string()).lower().strip("=")
+    open(sk_outfile,"w").write(sk_s+"\n")
+    open(vk_outfile,"w").write(vk_s+"\n")
+    print "wrote private signing key to", sk_outfile
+    print "write public verifying key to", vk_outfile
+elif sys.argv[1] == "sign":
+    sk_infile = sys.argv[2]
+    msg_infile = sys.argv[3]
+    sk_s = open(sk_infile).read().strip()
+    sk = ed25519.SigningKey(a2b(remove_prefix("sign0-", sk_s)))
+    f = open(msg_infile, "rb")
+    h = sha256()
+    while True:
+        data = f.read(16*1024)
+        if not data:
+            break
+        h.update(data)
+    mr = h.digest()
+    sig = sk.sign(mr)
+    print b2a(sig)
+elif sys.argv[1] == "verify":
+    vk_infile = sys.argv[2]
+    msg_infile = sys.argv[3]
+    sig_s = sys.argv[4]
+    vk_s = open(vk_infile).read().strip()
+    vk = ed25519.VerifyingKey(a2b(remove_prefix("verf0-", vk_s)))
+    f = open(msg_infile, "rb")
+    h = sha256()
+    while True:
+        data = f.read(16*1024)
+        if not data:
+            break
+        h.update(data)
+    mr = h.digest()
+    sig = a2b(sig_s)
+    vk.verify(sig, mr) # raises BadSignature
+    print "good signature!"
+else:
+    help()
