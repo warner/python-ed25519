@@ -63,8 +63,8 @@ if len(sys.argv) < 2:
 elif sys.argv[1] == "generate":
     sk,vk = ed25519.create_keypair()
     if len(sys.argv) > 2:
-        sk_outfile = sys.argv[1]+".signing.key"
-        vk_outfile = sys.argv[1]+".verifying.key"
+        sk_outfile = sys.argv[2]+".signing.key"
+        vk_outfile = sys.argv[2]+".verifying.key"
     else:
         sk_outfile = "signing.key"
         vk_outfile = "verifying.key"
