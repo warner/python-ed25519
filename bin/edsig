@@ -36,14 +36,21 @@ def remove_prefix(prefix, s):
         raise ValueError("no prefix found")
     return s[len(prefix):]
 
-def data_from_arg(arg, prefix, keylen):
-    if arg.startswith(prefix) and len(remove_prefix(prefix, arg))==keylen:
+def data_from_arg(arg, prefix, keylen, readable):
+    if (readable
+        and arg.startswith(prefix)
+        and len(remove_prefix(prefix, arg))==keylen):
         data_s = arg
     elif os.path.isfile(arg):
-        data_s = open(arg,"r").read().strip()
+        data_s = open(arg,"r").read()
+        if readable:
+            data_s = data_s.strip()
     else:
         raise ValueError("unable to get data from '%s'" % arg)
-    return a2b(remove_prefix(prefix, data_s))
+    data = remove_prefix(prefix, data_s)
+    if readable:
+        return a2b(data)
+    return data
 
 def message_rep(msg_arg):
     if msg_arg == "-":
@@ -68,24 +75,24 @@ elif sys.argv[1] == "generate":
     else:
         sk_outfile = "signing.key"
         vk_outfile = "verifying.key"
-    sk_s = "sign0-"+b32encode(sk.to_seed()).lower().strip("=")
+    sk_s = "sign0-"+sk.to_seed()
     vk_s = "verf0-"+b32encode(vk.to_string()).lower().strip("=")
-    open(sk_outfile,"w").write(sk_s+"\n")
+    open(sk_outfile,"w").write(sk_s)
     open(vk_outfile,"w").write(vk_s+"\n")
     print "wrote private signing key to", sk_outfile
     print "write public verifying key to", vk_outfile
 elif sys.argv[1] == "sign":
     sk_arg = sys.argv[2]
     msg_arg = sys.argv[3]
-    sk = ed25519.SigningKey(data_from_arg(sk_arg, "sign0-", 52))
+    sk = ed25519.SigningKey(data_from_arg(sk_arg, "sign0-", 52, False))
     sig = sk.sign(message_rep(msg_arg))
     print "sig0-"+b2a(sig)
 elif sys.argv[1] == "verify":
     vk_arg = sys.argv[2]
     msg_arg = sys.argv[3]
     sig_arg = sys.argv[4]
-    vk = ed25519.VerifyingKey(data_from_arg(vk_arg, "verf0-", 52))
-    sig = data_from_arg(sig_arg, "sig0-", 103)
+    vk = ed25519.VerifyingKey(data_from_arg(vk_arg, "verf0-", 52, True))
+    sig = data_from_arg(sig_arg, "sig0-", 103, True)
     vk.verify(sig, message_rep(msg_arg)) # could raise BadSignature
     print "good signature!"
 else:
