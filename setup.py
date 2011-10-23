@@ -21,7 +21,7 @@ sources.extend(["src/"+s for s in os.listdir("src")
 m = Extension("_ed25519", include_dirs=["src"], sources=sources)
 
 setup(name="ed25519",
-      version="0.2.post0",
+      version="0.3",
       description="Ed25519 public-key signatures",
       long_description=LONG_DESCRIPTION,
       author="Brian Warner",
