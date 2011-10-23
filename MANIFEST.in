@@ -1,0 +1,7 @@
+include src/*.c src/*.h src/*.data src/Makefile
+include MANIFEST.in LICENSE
+
+# these files provide basic functional tests, known-answer tests, and
+# performance benchmarks:
+include Makefile kat.py kat-ed25519.txt test.py
+
