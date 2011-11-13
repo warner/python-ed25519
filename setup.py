@@ -15,10 +15,10 @@ more details.
 """
 
 sources = ["ed25519module.c"]
-sources.extend(["src/"+s for s in os.listdir("src")
+sources.extend(["src-ed25519/"+s for s in os.listdir("src-ed25519")
                 if s.endswith(".c") and s!="test.c"])
 
-m = Extension("_ed25519", include_dirs=["src"], sources=sources)
+m = Extension("_ed25519", include_dirs=["src-ed25519"], sources=sources)
 
 setup(name="ed25519",
       version="0.3",
