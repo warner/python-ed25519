@@ -14,11 +14,11 @@ This system provides high (128-bit) security, short (32-byte) keys, short
 more details.
 """
 
-sources = ["ed25519module.c"]
+sources = ["ed25519/ed25519module.c"]
 sources.extend(["src-ed25519/"+s for s in os.listdir("src-ed25519")
                 if s.endswith(".c") and s!="test.c"])
 
-m = Extension("_ed25519", include_dirs=["src-ed25519"], sources=sources)
+m = Extension("ed25519/_ed25519", include_dirs=["src-ed25519"], sources=sources)
 
 setup(name="ed25519",
       version="0.3",
@@ -29,6 +29,7 @@ setup(name="ed25519",
       license="MIT",
       url="https://github.com/warner/python-ed25519",
       ext_modules=[m],
-      py_modules=["ed25519"],
+      packages=["ed25519"],
+      package_dir={"ed25519": "ed25519"},
       scripts=["bin/edsig"],
       )
