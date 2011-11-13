@@ -28,6 +28,11 @@ class Basic(unittest.TestCase):
             print " (%f elapsed)" % elapsed
         print msg
 
+    def test_version(self):
+        # just make sure it can be retrieved
+        ver = ed25519.__version__
+        self.failUnless(isinstance(ver, type("")))
+
     def test_constants(self):
         # the secret key we get from raw.keypair() are 64 bytes long, and
         # are mostly the output of a sha512 call. The first 32 bytes are the

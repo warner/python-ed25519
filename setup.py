@@ -1,6 +1,11 @@
 
-import os
+import re, os, subprocess
 from distutils.core import setup, Extension
+import versioning
+versioning.versionfile = "ed25519/_version.py"
+versioning.tag_prefix = ""
+versioning.parentdir_prefix = "ed25519-"
+
 
 LONG_DESCRIPTION="""\
 Python bindings to the Ed25519 public-key signature system.
@@ -21,7 +26,7 @@ sources.extend(["src-ed25519/"+s for s in os.listdir("src-ed25519")
 m = Extension("ed25519/_ed25519", include_dirs=["src-ed25519"], sources=sources)
 
 setup(name="ed25519",
-      version="0.3",
+      version=versioning.get_version(),
       description="Ed25519 public-key signatures",
       long_description=LONG_DESCRIPTION,
       author="Brian Warner",
@@ -32,4 +37,7 @@ setup(name="ed25519",
       packages=["ed25519"],
       package_dir={"ed25519": "ed25519"},
       scripts=["bin/edsig"],
+      cmdclass={'version': versioning.cmd_version,
+                'build': versioning.cmd_build,
+                'sdist': versioning.cmd_sdist, }
       )
