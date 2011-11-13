@@ -1,0 +1,14 @@
+User-Visible Changes in python-ed25519
+
+* Release 0.4 (12-Nov-2011)
+
+In this release, the .to_string() method was renamed to .to_bytes(), since
+the output is a non-printable binary bytestring.
+
+It also adds prefix= and encoding= arguments to most data-handling methods
+(key-object constructors, key-serialization, sign, and verify). These can
+help with version-checking and JSON encoding.
+
+The create_keypair() function now takes an entropy= argument, which is called
+just like os.urandom, and can be used to deterministically generate keys.
+This is most useful for unit tests.
