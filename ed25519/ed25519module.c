@@ -22,25 +22,6 @@ static PyObject *BadSignatureError,
 
 #include "crypto_sign.h"
 
-PyDoc_STRVAR(ed25519_keypair_doc,
-"keypair()\n\
-\n\
-Return a tuple of (verfkey, signkey), with the 64-byte private signing key \n\
-and the corresponding 32-byte public verfiying key.");
-
-static PyObject *
-ed25519_keypair(PyObject *self, PyObject *args)
-{
-    unsigned char verfkey[PUBLICKEYBYTES];
-    unsigned char signkey[SECRETKEYBYTES];
-    if (!PyArg_ParseTuple(args, ""))
-        return NULL;
-    crypto_sign_keypair(verfkey, signkey);
-    return Py_BuildValue("(s#s#)",
-                         verfkey, PUBLICKEYBYTES,
-                         signkey, SECRETKEYBYTES);
-}
-
 PyDoc_STRVAR(ed25519_publickey_doc,
 "publickey(signkey_seed)\n\
 \n\
@@ -162,7 +143,6 @@ ed25519_open(PyObject *self, PyObject *args)
 /* List of functions defined in the module */
 
 static PyMethodDef ed25519_methods[] = {
-    {"keypair",  ed25519_keypair,  METH_VARARGS, ed25519_keypair_doc},
     {"publickey",  ed25519_publickey,  METH_VARARGS, ed25519_publickey_doc},
     {"sign",  ed25519_sign,  METH_VARARGS, ed25519_sign_doc},
     {"open", ed25519_open, METH_VARARGS, ed25519_open_doc},

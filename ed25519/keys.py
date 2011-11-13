@@ -1,16 +1,15 @@
-
+import os
 import base64
 import _ed25519
 BadSignatureError = _ed25519.BadSignatureError
 
-def create_keypair():
-    # this is the only way to generate a SigningKey. The underlying library
-    # does not offer a way to make a key from a seed, and uses /dev/urandom
-    # directly.
-    vk_s, sk_s = _ed25519.keypair();
-    assert len(vk_s) == 32
-    assert len(sk_s) == 64
-    return SigningKey(sk_s), VerifyingKey(vk_s)
+def create_keypair(entropy=os.urandom):
+    SEEDLEN = _ed25519.SECRETKEYBYTES/2
+    assert SEEDLEN == 32
+    seed = entropy(SEEDLEN)
+    sk = SigningKey(seed)
+    vk = sk.get_verifying_key()
+    return sk, vk
 
 class BadPrefixError(Exception):
     pass

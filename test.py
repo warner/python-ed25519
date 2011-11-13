@@ -88,6 +88,21 @@ class Basic(unittest.TestCase):
         sk2, vk2 = ed25519.create_keypair()
         self.failIfEqual(hexlify(sk.to_bytes()), hexlify(sk2.to_bytes()))
 
+        # you can control the entropy source
+        def not_so_random(length):
+            return "4"*length
+        sk1, vk1 = ed25519.create_keypair(entropy=not_so_random)
+        self.failUnlessEqual(sk1.to_ascii(encoding="base64"),
+                             "NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDTrLPE79646X2FBaKH7CSctOXcexLhSNyeBXkZsr47hYw")
+        self.failUnlessEqual(vk1.to_ascii(encoding="base64"),
+                             "6yzxO/euOl9hQWih+wknLTl3HsS4UjcngV5GbK+O4WM")
+        sk2, vk2 = ed25519.create_keypair(entropy=not_so_random)
+        self.failUnlessEqual(sk1.to_ascii(encoding="base64"),
+                             sk2.to_ascii(encoding="base64"))
+        self.failUnlessEqual(vk1.to_ascii(encoding="base64"),
+                             vk2.to_ascii(encoding="base64"))
+
+
     def test_publickey(self):
         seed = unhexlify("4ba96b0b5303328c7405220598a587c4"
                          "acb06ed9a9601d149f85400195f1ec3d")

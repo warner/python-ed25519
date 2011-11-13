@@ -106,8 +106,9 @@ lowercased (for base32/base16).
 == Usage ==
 
 The first step is to create a signing key and store it. The safest way to
-generate a key is with the create_keypair, which internally reads directly
-from /dev/urandom:
+generate a key is with the create_keypair, which uses 32 bytes of random data
+from os.urandom(), although you can provide an alternative entropy source by
+providing an entropy= argument:
 
  import ed25519
  signing_key, verifying_key = ed25519.create_keypair()
@@ -169,6 +170,24 @@ hold just 32 bytes of data and derive everything else from that:
  signing_key = ed25519.SigningKey(keydata)
  verifying_key = signing_key.get_verifying_key()
 
+
+== API Summary ==
+
+sk,vk = ed25519.create_keypair(entropy=os.urandom)
+sk = SigningKey(bytes, prefix="")
+sk = SigningKey(seed, prefix="")
+sk = SigningKey(ascii, prefix=, encoding=)
+bytes = sk.to_bytes(prefix="")
+seed = sk.to_seed(prefix="")
+ascii = sk.to_ascii(encoding, prefix="")
+vk = sk.get_verifying_key()
+vk = VerifyingKey(bytes, prefix="")
+vk = VerifyingKey(ascii, prefix="", encoding=)
+bytes = vk.to_bytes(prefix="")
+ascii = vk.to_ascii(encoding, prefix="")
+
+signature = sk.sign(message, prefix="", encoding=)
+vk.verify(signature, message, prefix="", encoding=)
 
 
 --footnotes--
