@@ -1,6 +1,6 @@
 User-Visible Changes in python-ed25519
 
-* Release 0.4 (12-Nov-2011)
+* Release 0.5 (12-Nov-2011)
 
 In this release, the .to_string() method was renamed to .to_bytes(), since
 the output is a non-printable binary bytestring.
