@@ -87,16 +87,16 @@ class Basic(unittest.TestCase):
         self.failUnless(isinstance(vk, ed25519.VerifyingKey), vk)
         sk2, vk2 = ed25519.create_keypair()
         #print
-        #print "sk", hexlify(sk.to_string())
-        #print "vk", hexlify(vk.to_string())
-        #print hexlify(sk2.to_string())
-        self.failIfEqual(hexlify(sk.to_string()), hexlify(sk2.to_string()))
+        #print "sk", hexlify(sk.to_bytes())
+        #print "vk", hexlify(vk.to_bytes())
+        #print hexlify(sk2.to_bytes())
+        self.failIfEqual(hexlify(sk.to_bytes()), hexlify(sk2.to_bytes()))
 
     def test_publickey(self):
         seed = unhexlify("4ba96b0b5303328c7405220598a587c4"
                          "acb06ed9a9601d149f85400195f1ec3d")
         sk = ed25519.SigningKey(seed)
-        self.failUnlessEqual(hexlify(sk.to_string()),
+        self.failUnlessEqual(hexlify(sk.to_bytes()),
                              ("4ba96b0b5303328c7405220598a587c4"
                               "acb06ed9a9601d149f85400195f1ec3d"
                               "a66d161e090652b054740748f059f92a"
@@ -115,20 +115,20 @@ class Basic(unittest.TestCase):
                          "a66d161e090652b054740748f059f92a"
                          "5b731f1c27b05571f6d942e4f8b7b264")
         sk = ed25519.SigningKey(sk_s)
-        self.failUnlessEqual(len(sk.to_string()), 64)
-        self.failUnlessEqual(sk.to_string(), sk_s)
+        self.failUnlessEqual(len(sk.to_bytes()), 64)
+        self.failUnlessEqual(sk.to_bytes(), sk_s)
 
         sk2_seed = unhexlify("4ba96b0b5303328c7405220598a587c4"
                              "acb06ed9a9601d149f85400195f1ec3d")
         sk2 = ed25519.SigningKey(sk2_seed)
-        self.failUnlessEqual(sk2.to_string(), sk.to_string())
+        self.failUnlessEqual(sk2.to_bytes(), sk.to_bytes())
 
         vk = sk.get_verifying_key()
-        self.failUnlessEqual(len(vk.to_string()), 32)
+        self.failUnlessEqual(len(vk.to_bytes()), 32)
         exp_vks = unhexlify("a66d161e090652b054740748f059f92a"
                             "5b731f1c27b05571f6d942e4f8b7b264")
-        self.failUnlessEqual(vk.to_string(), exp_vks)
-        self.failUnlessEqual(ed25519.VerifyingKey(vk.to_string()), vk)
+        self.failUnlessEqual(vk.to_bytes(), exp_vks)
+        self.failUnlessEqual(ed25519.VerifyingKey(vk.to_bytes()), vk)
         msg = "hello world"
         sig = sk.sign(msg)
         self.failUnlessEqual(len(sig), 64)
@@ -192,10 +192,10 @@ class KnownAnswerTests(unittest.TestCase):
 
             sk = ed25519.SigningKey(seed)
             vk = sk.get_verifying_key()
-            self.failUnlessEqual(vk.to_string(), vk_s)
+            self.failUnlessEqual(vk.to_bytes(), vk_s)
             vk2 = ed25519.VerifyingKey(vk_s)
             self.failUnlessEqual(vk2, vk) # objects should compare equal
-            self.failUnlessEqual(vk2.to_string(), vk_s)
+            self.failUnlessEqual(vk2.to_bytes(), vk_s)
             newsig = sk.sign(msg)
             sig_R,sig_S = sig[:32],sig[32:]
             newsig_R,newsig_S = newsig[:32],newsig[32:]

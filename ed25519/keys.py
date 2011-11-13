@@ -24,7 +24,7 @@ class SigningKey(object):
         self.sk_s = sk_s # seed+pubkey
         self.vk_s = sk_s[32:] # just pubkey
 
-    def to_string(self):
+    def to_bytes(self):
         return self.sk_s
 
     def to_seed(self):
@@ -54,7 +54,7 @@ class VerifyingKey(object):
         assert len(vk_s) == 32
         self.vk_s = vk_s
 
-    def to_string(self):
+    def to_bytes(self):
         return self.vk_s
 
     def __eq__(self, them):

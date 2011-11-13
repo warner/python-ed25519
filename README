@@ -87,20 +87,20 @@ from /dev/urandom:
  import ed25519
  from binascii import hexlify, unhexlify
  signing_key, verifying_key = ed25519.create_keypair()
- open("my-secret-key","wb").write(signing_key.to_string())
- vkey_hex = hexlify(verifying_key.to_string())
+ open("my-secret-key","wb").write(signing_key.to_bytes())
+ vkey_hex = hexlify(verifying_key.to_bytes())
  print "the public key is", vkey_hex
 
-The private signing key string produced by to_string() is 64 bytes long, and
+The private signing key string produced by to_bytes() is 64 bytes long, and
 includes a copy of the public key (to avoid the 1.9ms needed to recalculate
 it later). If you want to store less data (and recompute the public key
-later), you can store just the 32 byte seed instead.
+later), you can store just the 32 byte seed instead:
 
  open("my-secret-seed","wb").write(signing_key.to_seed())
 
 The signing key is an instance of the ed25519.SigningKey class. To
 reconstruct this instance from a serialized form, the constructor accepts the
-output of either .to_string() or .to_seed():
+output of either .to_bytes() or .to_seed():
 
  keydata = open("my-secret-key","rb").read()
  signing_key = ed25519.SigningKey(keydata)
