@@ -7,7 +7,7 @@ from hashlib import sha256
 
 def help():
     print """\
-Usage:
+Usage: (ed25519 version %s)
 
  edsig generate [STEM]
    creates keypair, writes to 'STEM.signing.key' and 'STEM.verifying.key'
@@ -23,7 +23,7 @@ Usage:
 
 Key-providing arguments can either be the key itself, or point to a file
 containing the key.
-"""
+""" % ed25519.__version__
 
 def b2a(b):
     return b32encode(b).lower().strip("=")
