@@ -90,7 +90,8 @@ class SigningKey(object):
     def to_bytes(self, prefix=""):
         return prefix+self.sk_s
 
-    def to_ascii(self, encoding, prefix=""):
+    def to_ascii(self, prefix="", encoding=None):
+        assert encoding
         return to_ascii(self.sk_s, prefix, encoding)
 
     def to_seed(self, prefix=""):
@@ -129,7 +130,8 @@ class VerifyingKey(object):
     def to_bytes(self, prefix=""):
         return prefix+self.vk_s
 
-    def to_ascii(self, encoding, prefix=""):
+    def to_ascii(self, prefix="", encoding=None):
+        assert encoding
         return to_ascii(self.vk_s, prefix, encoding)
 
     def __eq__(self, them):

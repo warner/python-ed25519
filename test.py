@@ -216,7 +216,7 @@ class Basic(unittest.TestCase):
 
         def check1(encoding, expected):
             PREFIX = "private0-"
-            p = sk1.to_ascii(encoding, PREFIX)
+            p = sk1.to_ascii(PREFIX, encoding)
             self.failUnlessEqual(p, expected)
             sk2 = ed25519.SigningKey(p, prefix=PREFIX, encoding=encoding)
             self.failUnlessEqual(repr(sk1.to_bytes()), repr(sk2.to_bytes()))
@@ -227,7 +227,7 @@ class Basic(unittest.TestCase):
 
         def check2(encoding, expected):
             PREFIX="public0-"
-            p = vk1.to_ascii(encoding, PREFIX)
+            p = vk1.to_ascii(PREFIX, encoding)
             self.failUnlessEqual(p, expected)
             vk2 = ed25519.VerifyingKey(p, prefix=PREFIX, encoding=encoding)
             self.failUnlessEqual(repr(vk1.to_bytes()), repr(vk2.to_bytes()))
