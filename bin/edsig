@@ -1,7 +1,6 @@
 #! /usr/bin/python
 
 import os, sys
-from base64 import b32encode, b32decode
 import ed25519
 from hashlib import sha256
 
@@ -25,12 +24,6 @@ Key-providing arguments can either be the key itself, or point to a file
 containing the key.
 """ % ed25519.__version__
 
-def b2a(b):
-    return b32encode(b).lower().strip("=")
-def a2b(a):
-    a = a + "="*{0:0, 1:"X", 2:6, 3:"X", 4:4, 5:3, 6:"X", 7:1}[len(a)%8]
-    return b32decode(a.upper())
-
 def remove_prefix(prefix, s):
     if not s.startswith(prefix):
         raise ValueError("no prefix found")
@@ -40,17 +33,10 @@ def data_from_arg(arg, prefix, keylen, readable):
     if (readable
         and arg.startswith(prefix)
         and len(remove_prefix(prefix, arg))==keylen):
-        data_s = arg
-    elif os.path.isfile(arg):
-        data_s = open(arg,"r").read()
-        if readable:
-            data_s = data_s.strip()
-    else:
-        raise ValueError("unable to get data from '%s'" % arg)
-    data = remove_prefix(prefix, data_s)
-    if readable:
-        return a2b(data)
-    return data
+        return arg
+    if os.path.isfile(arg):
+        return open(arg,"r").read()
+    raise ValueError("unable to get data from '%s'" % arg)
 
 def message_rep(msg_arg):
     if msg_arg == "-":
@@ -75,8 +61,8 @@ elif sys.argv[1] == "generate":
     else:
         sk_outfile = "signing.key"
         vk_outfile = "verifying.key"
-    sk_s = "sign0-"+sk.to_seed()
-    vk_s = "verf0-"+b32encode(vk.to_string()).lower().strip("=")
+    sk_s = sk.to_seed(prefix="sign0-")
+    vk_s = vk.to_ascii("base32", "verf0-")
     open(sk_outfile,"w").write(sk_s)
     open(vk_outfile,"w").write(vk_s+"\n")
     print "wrote private signing key to", sk_outfile
@@ -84,16 +70,19 @@ elif sys.argv[1] == "generate":
 elif sys.argv[1] == "sign":
     sk_arg = sys.argv[2]
     msg_arg = sys.argv[3]
-    sk = ed25519.SigningKey(data_from_arg(sk_arg, "sign0-", 52, False))
-    sig = sk.sign(message_rep(msg_arg))
-    print "sig0-"+b2a(sig)
+    sk = ed25519.SigningKey(data_from_arg(sk_arg, "sign0-", 52, False),
+                            prefix="sign0-")
+    sig = sk.sign(message_rep(msg_arg), prefix="sig0-", encoding="base32")
+    print sig
 elif sys.argv[1] == "verify":
     vk_arg = sys.argv[2]
     msg_arg = sys.argv[3]
     sig_arg = sys.argv[4]
-    vk = ed25519.VerifyingKey(data_from_arg(vk_arg, "verf0-", 52, True))
+    vk = ed25519.VerifyingKey(data_from_arg(vk_arg, "verf0-", 52, True),
+                              prefix="verf0-", encoding="base32")
     sig = data_from_arg(sig_arg, "sig0-", 103, True)
-    vk.verify(sig, message_rep(msg_arg)) # could raise BadSignature
+    vk.verify(sig, message_rep(msg_arg),
+              prefix="sig0-", encoding="base32") # could raise BadSignature
     print "good signature!"
 else:
     help()
