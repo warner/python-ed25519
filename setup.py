@@ -1,5 +1,5 @@
 
-import re, os, subprocess
+import os
 from distutils.core import setup, Extension
 import versioning
 versioning.versionfile = "ed25519/_version.py"
