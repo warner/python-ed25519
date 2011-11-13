@@ -86,10 +86,6 @@ class Basic(unittest.TestCase):
         self.failUnless(isinstance(sk, ed25519.SigningKey), sk)
         self.failUnless(isinstance(vk, ed25519.VerifyingKey), vk)
         sk2, vk2 = ed25519.create_keypair()
-        #print
-        #print "sk", hexlify(sk.to_bytes())
-        #print "vk", hexlify(vk.to_bytes())
-        #print hexlify(sk2.to_bytes())
         self.failIfEqual(hexlify(sk.to_bytes()), hexlify(sk2.to_bytes()))
 
     def test_publickey(self):
@@ -163,6 +159,93 @@ class Basic(unittest.TestCase):
 
         self.failIfEqual(sk2, "not a SigningKey")
         self.failIfEqual(vk2, "not a VerifyingKey")
+
+    def test_prefix(self):
+        sk1,vk1 = ed25519.create_keypair()
+        PREFIX = "private0-"
+        p = sk1.to_bytes(PREFIX)
+        # that gives us a binary string with a prefix
+        self.failUnless(p.startswith(PREFIX), repr(p))
+        sk2 = ed25519.SigningKey(p, prefix=PREFIX)
+        self.failUnlessEqual(sk1, sk2)
+        self.failUnlessEqual(repr(sk1.to_bytes()), repr(sk2.to_bytes()))
+        self.failUnlessRaises(ed25519.BadPrefixError,
+                              ed25519.SigningKey, p, prefix="WRONG-")
+        # SigningKey.to_seed() can do a prefix too
+        p = sk1.to_seed(PREFIX)
+        self.failUnless(p.startswith(PREFIX), repr(p))
+        sk3 = ed25519.SigningKey(p, prefix=PREFIX)
+        self.failUnlessEqual(sk1, sk3)
+        self.failUnlessEqual(repr(sk1.to_bytes()), repr(sk3.to_bytes()))
+        self.failUnlessRaises(ed25519.BadPrefixError,
+                              ed25519.SigningKey, p, prefix="WRONG-")
+
+        # verifying keys can do this too
+        PREFIX = "public0-"
+        p = vk1.to_bytes(PREFIX)
+        self.failUnless(p.startswith(PREFIX), repr(p))
+        vk2 = ed25519.VerifyingKey(p, prefix=PREFIX)
+        self.failUnlessEqual(vk1, vk2)
+        self.failUnlessEqual(repr(vk1.to_bytes()), repr(vk2.to_bytes()))
+        self.failUnlessRaises(ed25519.BadPrefixError,
+                              ed25519.VerifyingKey, p, prefix="WRONG-")
+
+        # and signatures
+        PREFIX = "sig0-"
+        p = sk1.sign("msg", PREFIX)
+        self.failUnless(p.startswith(PREFIX), repr(p))
+        vk1.verify(p, "msg", PREFIX)
+        self.failUnlessRaises(ed25519.BadPrefixError,
+                              vk1.verify, p, "msg", prefix="WRONG-")
+
+    def test_ascii(self):
+        b2a = ed25519.to_ascii
+        a2b = ed25519.from_ascii
+        for prefix in ("", "prefix-"):
+            for length in range(0, 100):
+                b1 = "a"*length
+                for base in ("base64", "base32", "base16", "hex"):
+                    a = b2a(b1, prefix, base)
+                    b2 = a2b(a, prefix, base)
+                    self.failUnlessEqual(b1, b2)
+
+    def test_encoding(self):
+        sk_s = "\x88" * 32 # usually urandom(32)
+        sk1 = ed25519.SigningKey(sk_s)
+        vk1 = sk1.get_verifying_key()
+
+        def check1(encoding, expected):
+            PREFIX = "private0-"
+            p = sk1.to_ascii(encoding, PREFIX)
+            self.failUnlessEqual(p, expected)
+            sk2 = ed25519.SigningKey(p, prefix=PREFIX, encoding=encoding)
+            self.failUnlessEqual(repr(sk1.to_bytes()), repr(sk2.to_bytes()))
+            self.failUnlessEqual(sk1, sk2)
+        check1("base64", "private0-iIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiySR2VAq4oYworrLLgx0UQ/83TKMM0/z4Tk+dbLTHn3A")
+        check1("base32", "private0-rceirceirceirceirceirceirceirceirceirceirceirceircelesi5subk4kddbiv2zmxay5crb76n2mumgnh7hyjzhz23fuy6pxa")
+        check1("hex", "private0-8888888888888888888888888888888888888888888888888888888888888888b2491d9502ae28630a2bacb2e0c74510ffcdd328c334ff3e1393e75b2d31e7dc")
+
+        def check2(encoding, expected):
+            PREFIX="public0-"
+            p = vk1.to_ascii(encoding, PREFIX)
+            self.failUnlessEqual(p, expected)
+            vk2 = ed25519.VerifyingKey(p, prefix=PREFIX, encoding=encoding)
+            self.failUnlessEqual(repr(vk1.to_bytes()), repr(vk2.to_bytes()))
+            self.failUnlessEqual(vk1, vk2)
+        check2("base64", "public0-skkdlQKuKGMKK6yy4MdFEP/N0yjDNP8+E5PnWy0x59w")
+        check2("base32", "public0-wjer3ficvyuggcrlvszobr2fcd743uziym2p6pqtsptvwljr47oa")
+        check2("hex", "public0-b2491d9502ae28630a2bacb2e0c74510ffcdd328c334ff3e1393e75b2d31e7dc")
+
+        def check3(encoding, expected):
+            msg = "msg"
+            PREFIX="sig0-"
+            sig = sk1.sign(msg, PREFIX, encoding)
+            self.failUnlessEqual(sig, expected)
+            vk1.verify(sig, msg, PREFIX, encoding)
+        check3("base64", "sig0-MNfdUir6tMlaYQ+/p8KANJ5d+bk8g2al76v5MeJCo6RiywxURda3sU580CyiW2FBG/Q7kDRswgYqxbkQw3o5CQ")
+        check3("base32", "sig0-gdl52urk7k2mswtbb672pquagspf36nzhsbwnjppvp4tdyscuosgfsymkrc5nn5rjz6nalfclnqucg7uhoidi3gcayvmloiqyn5dsci")
+        check3("hex", "sig0-30d7dd522afab4c95a610fbfa7c280349e5df9b93c8366a5efabf931e242a3a462cb0c5445d6b7b14e7cd02ca25b61411bf43b90346cc2062ac5b910c37a3909")
+
 
 
 class KnownAnswerTests(unittest.TestCase):
