@@ -62,7 +62,7 @@ elif sys.argv[1] == "generate":
         sk_outfile = "signing.key"
         vk_outfile = "verifying.key"
     sk_s = sk.to_seed(prefix="sign0-")
-    vk_s = vk.to_ascii("base32", "verf0-")
+    vk_s = vk.to_ascii("verf0-", "base32")
     open(sk_outfile,"w").write(sk_s)
     open(vk_outfile,"w").write(vk_s+"\n")
     print "wrote private signing key to", sk_outfile
