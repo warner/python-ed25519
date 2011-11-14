@@ -8,7 +8,7 @@ test:
 	@echo "run '$(MAKE) kat' to run the (slower) known-answer-tests"
 	$(PP) python $(BUILDDIR)/ed25519/test.py $(TEST)
 kat:
-	$(PP) python test.py KnownAnswerTests
+	$(PP) python test-kat.py
 
 bench:
 	@echo -n "keypair generation: "
