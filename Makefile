@@ -11,11 +11,12 @@ kat:
 	$(PP) python test-kat.py
 
 bench:
-	@echo -n "keypair generation: "
+	@echo "Running benchmark tests.."
+	@echo -n " keypair generation: "
 	@$(PP) python -m timeit -n 1000 -s "import ed25519" "ed25519.create_keypair()"
-	@echo -n "signing: "
+	@echo -n " signing: "
 	@$(PP) python -m timeit -n 1000 -s "import ed25519; sk,vk=ed25519.create_keypair(); msg='hello world'" "sk.sign(msg)"
-	@echo -n "verifying: "
+	@echo -n " verifying: "
 	@$(PP) python -m timeit -n 1000 -s "import ed25519; sk,vk=ed25519.create_keypair(); msg='hello world'; sig=sk.sign(msg)" "vk.verify(sig,msg)"
 
 # on my laptop: keypair 6.57ms, sign 6.56ms, verify 17.3ms

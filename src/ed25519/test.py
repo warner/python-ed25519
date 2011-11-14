@@ -13,6 +13,9 @@ def flip_bit(s, bit=0, in_byte=-1):
 # the pure-python demonstration code (on my 2010 MacBookPro) takes 5s to
 # generate a public key, 9s to sign, 14s to verify
 
+# the SUPERCOP-ref version we use takes 2ms for keygen, 2ms to sign, and 7ms
+# to verify
+
 class Basic(unittest.TestCase):
     timer = None
     def log(self, msg):
