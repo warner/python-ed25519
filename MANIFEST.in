@@ -1,8 +1,15 @@
-include src-ed25519/*.c src-ed25519/*.h src-ed25519/*.data src-ed25519/Makefile
-include MANIFEST.in LICENSE
-include versioning.py _version.py
+
+# all sources referenced by setup.py are automatically included, but that
+# doesn't cover the .h and ge25519_base.data files, nor the Makefile
+include src/ed25519-supercop-ref/*.c src/ed25519-supercop-ref/*.h
+include src/ed25519-supercop-ref/Makefile src/ed25519-supercop-ref/*.data
+
+# basic metadata
+include MANIFEST.in LICENSE NEWS README
+
+# version-number-updating files
+include versioning.py src/ed25519/_version.py
 
 # these files provide basic functional tests, known-answer tests, and
 # performance benchmarks:
-include Makefile kat.py kat-ed25519.txt test.py
-
+include Makefile test-kat.py kat-ed25519.txt kat.py
