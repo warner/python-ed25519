@@ -1,14 +1,15 @@
 
 build: ed25519module.c
 	python setup.py build
+BUILDDIR = build/lib.macosx-10.6-universal-2.6
+PP= PYTHONPATH=build/lib.macosx-10.6-universal-2.6
 TEST=Basic
 test:
 	@echo "run '$(MAKE) kat' to run the (slower) known-answer-tests"
-	PYTHONPATH=build/lib.macosx-10.6-universal-2.6 python test.py $(TEST)
+	$(PP) python $(BUILDDIR)/ed25519/test.py $(TEST)
 kat:
-	PYTHONPATH=build/lib.macosx-10.6-universal-2.6 python test.py KnownAnswerTests
+	$(PP) python test.py KnownAnswerTests
 
-PP= PYTHONPATH=build/lib.macosx-10.6-universal-2.6
 bench:
 	@echo -n "keypair generation: "
 	@$(PP) python -m timeit -n 1000 -s "import ed25519" "ed25519.create_keypair()"

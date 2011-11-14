@@ -2,7 +2,7 @@
 import os
 from distutils.core import setup, Extension
 import versioning
-versioning.versionfile = "ed25519/_version.py"
+versioning.versionfile = "src/ed25519/_version.py"
 versioning.tag_prefix = ""
 versioning.parentdir_prefix = "ed25519-"
 
@@ -19,11 +19,13 @@ This system provides high (128-bit) security, short (32-byte) keys, short
 more details.
 """
 
-sources = ["ed25519/ed25519module.c"]
-sources.extend(["src-ed25519/"+s for s in os.listdir("src-ed25519")
+sources = ["src/ed25519-glue/ed25519module.c"]
+sources.extend(["src/ed25519-supercop-ref/"+s
+                for s in os.listdir("src/ed25519-supercop-ref")
                 if s.endswith(".c") and s!="test.c"])
 
-m = Extension("ed25519/_ed25519", include_dirs=["src-ed25519"], sources=sources)
+m = Extension("ed25519/_ed25519",
+              include_dirs=["src/ed25519-supercop-ref"], sources=sources)
 
 setup(name="ed25519",
       version=versioning.get_version(),
@@ -35,7 +37,7 @@ setup(name="ed25519",
       url="https://github.com/warner/python-ed25519",
       ext_modules=[m],
       packages=["ed25519"],
-      package_dir={"ed25519": "ed25519"},
+      package_dir={"ed25519": "src/ed25519"},
       scripts=["bin/edsig"],
       cmdclass={'version': versioning.cmd_version,
                 'build': versioning.cmd_build,

@@ -1,4 +1,4 @@
 /build/
 /MANIFEST
 /dist/
-/ed25519/_version.py
+/src/ed25519/_version.py

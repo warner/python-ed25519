@@ -1,6 +1,6 @@
 import os
 import base64
-import _ed25519
+from . import _ed25519
 BadSignatureError = _ed25519.BadSignatureError
 
 def create_keypair(entropy=os.urandom):
