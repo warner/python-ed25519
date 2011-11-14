@@ -9,8 +9,6 @@ def flip_bit(s, bit=0, in_byte=-1):
     as_bytes = [ord(b) for b in s]
     as_bytes[in_byte] = as_bytes[in_byte] ^ (0x01<<bit)
     return "".join([chr(b) for b in as_bytes])
-def b(hexlified):
-    return unhexlify(hexlified)
 
 # the pure-python demonstration code (on my 2010 MacBookPro) takes 5s to
 # generate a public key, 9s to sign, 14s to verify
