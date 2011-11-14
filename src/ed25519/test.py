@@ -2,8 +2,8 @@
 import unittest
 import time
 from binascii import hexlify, unhexlify
-from . import ed25519
-from . import _ed25519 as raw
+import ed25519
+from ed25519 import _ed25519 as raw
 
 def flip_bit(s, bit=0, in_byte=-1):
     as_bytes = [ord(b) for b in s]
