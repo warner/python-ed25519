@@ -29,6 +29,8 @@ sources.extend(["src/ed25519-supercop-ref/"+s
 m = Extension("ed25519/_ed25519",
               include_dirs=["src/ed25519-supercop-ref"], sources=sources)
 
+commands = versioneer.get_cmdclass().copy()
+
 class Test(Command):
     description = "run tests"
     user_options = []
@@ -49,6 +51,7 @@ class Test(Command):
         runner = unittest.TextTestRunner(verbosity=2)
         result = runner.run(test)
         sys.exit(not result.wasSuccessful())
+commands["test"] = Test
 
 class KnownAnswerTest(Test):
     description = "run known-answer-tests"
@@ -59,10 +62,31 @@ class KnownAnswerTest(Test):
         runner = unittest.TextTestRunner(verbosity=2)
         result = runner.run(test)
         sys.exit(not result.wasSuccessful())
-
-commands = versioneer.get_cmdclass().copy()
-commands["test"] = Test
 commands["test_kat"] = KnownAnswerTest
+
+
+class Speed(Test):
+    description = "run benchmark suite"
+    def run(self):
+        self.setup_path()
+        from timeit import main
+        #t = timeit(setup="import ed25519", stmt="ed25519.create_keypair()", number=1000)
+
+        print " keypair generation:",
+        main(["-n", "1000",
+              "-s", "import ed25519",
+              "ed25519.create_keypair()"])
+
+	print " signing:",
+        main(["-n", "1000",
+              "-s", "import ed25519; sk,vk=ed25519.create_keypair(); msg='hello world'",
+              "sk.sign(msg)"])
+
+        print " verifying:",
+        main(["-n", "1000",
+              "-s", "import ed25519; sk,vk=ed25519.create_keypair(); msg='hello world'; sig=sk.sign(msg)",
+              "vk.verify(sig,msg)"])
+commands["speed"] = Speed
 
 setup(name="ed25519",
       version=versioneer.get_version(),
