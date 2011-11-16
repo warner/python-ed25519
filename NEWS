@@ -1,4 +1,23 @@
+# -*- org -*-
+
 User-Visible Changes in python-ed25519
+
+* Release 0.6 (16-Nov-2011)
+
+This release fixes execution of unit tests and import errors when run from
+inside the source tree: the 0.5 release was quite broken (having a directory
+named 'ed25519' in the source tree's root interfered with imports from the
+expected build/... subdirectory), and manual testing failed to catch the
+problem (because import found a locally-installed copy in /usr/local). The
+source tree has been rearranged to keep this from happening. 
+
+The (small) unit tests are now installed along with the code. The large
+Known-Answer-Tests (about 2.5MB) are not, to keep the installed size low
+(about 600kB, most of which is the binary .so).
+
+The 0.6 release also improves the version-string generation code, using
+python-versioneer-0.1 .
+
 
 * Release 0.5 (12-Nov-2011)
 
