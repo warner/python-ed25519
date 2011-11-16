@@ -1,6 +1,6 @@
 
-import os
-from distutils.core import setup, Extension
+import sys, os
+from distutils.core import setup, Extension, Command
 import versioneer
 versioneer.versionfile_source = "src/ed25519/_version.py"
 versioneer.versionfile_build = "ed25519/_version.py"
@@ -28,6 +28,29 @@ sources.extend(["src/ed25519-supercop-ref/"+s
 m = Extension("ed25519/_ed25519",
               include_dirs=["src/ed25519-supercop-ref"], sources=sources)
 
+from distutils.util import get_platform
+class Test(Command):
+    description = "run tests"
+    user_options = []
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+    def run(self):
+        # copied from distutils/command/build.py
+        self.plat_name = get_platform()
+        plat_specifier = ".%s-%s" % (self.plat_name, sys.version[0:3])
+        self.build_lib = os.path.join("build", "lib"+plat_specifier)
+        sys.path.insert(0, self.build_lib)
+        import ed25519.test
+        import unittest
+        test = unittest.defaultTestLoader.loadTestsFromModule(ed25519.test)
+        runner = unittest.TextTestRunner(verbosity=2)
+        result = runner.run(test)
+        sys.exit(not result.wasSuccessful())
+
+commands = versioneer.get_cmdclass().copy()
+commands["test"] = Test
 setup(name="ed25519",
       version=versioneer.get_version(),
       description="Ed25519 public-key signatures",
@@ -40,5 +63,5 @@ setup(name="ed25519",
       packages=["ed25519"],
       package_dir={"ed25519": "src/ed25519"},
       scripts=["bin/edsig"],
-      cmdclass=versioneer.get_cmdclass(),
+      cmdclass=commands,
       )
