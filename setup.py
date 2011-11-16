@@ -1,10 +1,11 @@
 
 import os
 from distutils.core import setup, Extension
-import versioning
-versioning.versionfile = "src/ed25519/_version.py"
-versioning.tag_prefix = ""
-versioning.parentdir_prefix = "ed25519-"
+import versioneer
+versioneer.versionfile_source = "src/ed25519/_version.py"
+versioneer.versionfile_build = "ed25519/_version.py"
+versioneer.tag_prefix = ""
+versioneer.parentdir_prefix = "ed25519-"
 
 
 LONG_DESCRIPTION="""\
@@ -28,7 +29,7 @@ m = Extension("ed25519/_ed25519",
               include_dirs=["src/ed25519-supercop-ref"], sources=sources)
 
 setup(name="ed25519",
-      version=versioning.get_version(),
+      version=versioneer.get_version(),
       description="Ed25519 public-key signatures",
       long_description=LONG_DESCRIPTION,
       author="Brian Warner",
@@ -39,7 +40,5 @@ setup(name="ed25519",
       packages=["ed25519"],
       package_dir={"ed25519": "src/ed25519"},
       scripts=["bin/edsig"],
-      cmdclass={'version': versioning.cmd_version,
-                'build': versioning.cmd_build,
-                'sdist': versioning.cmd_sdist, }
+      cmdclass=versioneer.get_cmdclass(),
       )
