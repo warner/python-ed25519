@@ -18,7 +18,8 @@ and RSA-3072.
 == Dependencies ==
 
 This library includes a copy of all the C code necessary. You will need
-Python (probably 2.5 or later) and a C compiler.
+Python (probably 2.5 or later) and a C compiler. The tests are run
+automatically against python2.6 and python2.7 .
 
 
 == Speed and Key Sizes ==
