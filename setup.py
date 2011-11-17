@@ -47,7 +47,7 @@ class Test(Command):
     def run(self):
         self.setup_path()
         import unittest
-        test = unittest.defaultTestLoader.loadTestsFromName("ed25519.test")
+        test = unittest.defaultTestLoader.loadTestsFromName("ed25519.test_ed25519")
         runner = unittest.TextTestRunner(verbosity=2)
         result = runner.run(test)
         sys.exit(not result.wasSuccessful())
@@ -58,7 +58,7 @@ class KnownAnswerTest(Test):
     def run(self):
         self.setup_path()
         import unittest
-        test = unittest.defaultTestLoader.loadTestsFromName("test-kat")
+        test = unittest.defaultTestLoader.loadTestsFromName("test_ed25519_kat")
         runner = unittest.TextTestRunner(verbosity=2)
         result = runner.run(test)
         sys.exit(not result.wasSuccessful())
