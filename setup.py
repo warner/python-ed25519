@@ -26,7 +26,7 @@ sources.extend(["src/ed25519-supercop-ref/"+s
                 for s in os.listdir("src/ed25519-supercop-ref")
                 if s.endswith(".c") and s!="test.c"])
 
-m = Extension("ed25519/_ed25519",
+m = Extension("ed25519._ed25519",
               include_dirs=["src/ed25519-supercop-ref"], sources=sources)
 
 commands = versioneer.get_cmdclass().copy()
