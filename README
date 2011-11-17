@@ -188,7 +188,7 @@ seed = sk.to_seed(prefix=)
 sk = SigningKey(seed, prefix=)
 bytes = sk.to_bytes(prefix=)
 sk = SigningKey(bytes, prefix=)
-ascii = sk.to_ascii(prefix=, encoding=)
+ascii = sk.to_ascii(prefix=, encoding=)  # encodes seed
 sk = SigningKey(ascii, prefix=, encoding=)
 
 bytes = vk.to_bytes(prefix=)

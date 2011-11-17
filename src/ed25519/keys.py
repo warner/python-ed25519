@@ -91,7 +91,7 @@ class SigningKey(object):
 
     def to_ascii(self, prefix="", encoding=None):
         assert encoding
-        return to_ascii(self.sk_s, prefix, encoding)
+        return to_ascii(self.to_seed(), prefix, encoding)
 
     def to_seed(self, prefix=""):
         return prefix+self.sk_s[:32]

@@ -94,7 +94,7 @@ class Basic(unittest.TestCase):
             return "4"*length
         sk1, vk1 = ed25519.create_keypair(entropy=not_so_random)
         self.failUnlessEqual(sk1.to_ascii(encoding="base64"),
-                             "NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDTrLPE79646X2FBaKH7CSctOXcexLhSNyeBXkZsr47hYw")
+                             "NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ")
         self.failUnlessEqual(vk1.to_ascii(encoding="base64"),
                              "6yzxO/euOl9hQWih+wknLTl3HsS4UjcngV5GbK+O4WM")
         sk2, vk2 = ed25519.create_keypair(entropy=not_so_random)
@@ -237,9 +237,9 @@ class Basic(unittest.TestCase):
             sk2 = ed25519.SigningKey(p, prefix=PREFIX, encoding=encoding)
             self.failUnlessEqual(repr(sk1.to_bytes()), repr(sk2.to_bytes()))
             self.failUnlessEqual(sk1, sk2)
-        check1("base64", "private0-iIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiySR2VAq4oYworrLLgx0UQ/83TKMM0/z4Tk+dbLTHn3A")
-        check1("base32", "private0-rceirceirceirceirceirceirceirceirceirceirceirceircelesi5subk4kddbiv2zmxay5crb76n2mumgnh7hyjzhz23fuy6pxa")
-        check1("hex", "private0-8888888888888888888888888888888888888888888888888888888888888888b2491d9502ae28630a2bacb2e0c74510ffcdd328c334ff3e1393e75b2d31e7dc")
+        check1("base64", "private0-iIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIg")
+        check1("base32", "private0-rceirceirceirceirceirceirceirceirceirceirceirceircea")
+        check1("hex", "private0-8888888888888888888888888888888888888888888888888888888888888888")
 
         def check2(encoding, expected):
             PREFIX="public0-"
