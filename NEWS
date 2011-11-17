@@ -1,6 +1,22 @@
-# -*- org -*-
 
 User-Visible Changes in python-ed25519
+
+* Release 0.7 (?)
+
+The SigningKey.to_ascii() method was modified to return an encoded seed (32
+bytes) rather than the full private key (64 bytes). The SigningKey()
+constructor will accept either.
+
+Unit tests, known-answer tests, and speed benchmarks can now be run through
+setup.py:
+
+ python setup.py test
+ python setup.py test_kat
+ python setup.py speed
+
+A power-on self test (which takes about 10ms) was added to throw an
+AssertionError if basic keygen/sign/verify operations are broken.
+
 
 * Release 0.6 (16-Nov-2011)
 
@@ -31,3 +47,12 @@ help with version-checking and JSON encoding.
 The create_keypair() function now takes an entropy= argument, which is called
 just like os.urandom, and can be used to deterministically generate keys.
 This is most useful for unit tests.
+
+
+
+* org-mode configuration follows
+#+STARTUP: showall
+
+# Local Variables:
+# mode:org
+# End:
