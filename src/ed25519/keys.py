@@ -152,3 +152,15 @@ class VerifyingKey(object):
         msg2 = _ed25519.open(sig_and_msg, self.vk_s)
         assert msg2 == msg
 
+def selftest():
+    message = "crypto libraries should always test themselves at powerup"
+    sk = SigningKey("priv0-VIsfn5OFGa09Un2MR6Hm7BQ5++xhcQskU2OGXG8jSJl4cWLZrRrVcSN2gVYMGtZT+3354J5jfmqAcuRSD9KIyg",
+                    prefix="priv0-", encoding="base64")
+    vk = VerifyingKey("pub0-eHFi2a0a1XEjdoFWDBrWU/t9+eCeY35qgHLkUg/SiMo",
+                      prefix="pub0-", encoding="base64")
+    assert sk.get_verifying_key() == vk
+    sig = sk.sign(message, prefix="sig0-", encoding="base64")
+    assert sig == "sig0-E/QrwtSF52x8+q0l4ahA7eJbRKc777ClKNg217Q0z4fiYMCdmAOI+rTLVkiFhX6k3D+wQQfKdJYMxaTUFfv1DQ", sig
+    vk.verify(sig, message, prefix="sig0-", encoding="base64")
+
+selftest()
