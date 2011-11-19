@@ -1,6 +1,16 @@
 
 User-Visible Changes in python-ed25519
 
+* Release 0.8 (19-Nov-2011)
+
+This release probably adds Windows compatibility. To enable this, the
+upstream C code which calls sleep() was removed: crypto_sign_keypair() was
+removed from ed25519.c, and randombytes.c and randombytes.h were deleted
+entirely. The Python code (in ed25519.create_keypair) wasn't using
+crypto_sign_keypair() anyways: it switched to using os.urandom() and
+crypto_sign_publickey() in 0.5 .
+
+
 * Release 0.7 (17-Nov-2011)
 
 The SigningKey.to_ascii() method was modified to return an encoded seed (32
