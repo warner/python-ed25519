@@ -15,9 +15,19 @@
 // this makes "s#" use Py_ssize_t instead of int
 #define PY_SSIZE_T_CLEAN 1
 #include "Python.h"
+#include <bytesobject.h>
+#if (PY_VERSION_HEX < 0x02050000)
+typedef int Py_ssize_t;
+#endif
 
-static PyObject *BadSignatureError,
-    *SECRETKEYBYTESObject, *PUBLICKEYBYTESObject, *SIGNATUREBYTESObject;
+/* This is required for compatibility with Python 2. */
+#if PY_MAJOR_VERSION >= 3
+	#define y "y"
+#else
+	#define y "t"
+#endif
+
+static PyObject *BadSignatureError;
 /* --------------------------------------------------------------------- */
 
 #include "crypto_sign.h"
@@ -38,10 +48,10 @@ ed25519_publickey(PyObject *self, PyObject *args)
     unsigned char signkey[SECRETKEYBYTES];
     unsigned char *seed;
     unsigned int seed_len;
-    if (!PyArg_ParseTuple(args, "s#", &seed, &seed_len))
+    if (!PyArg_ParseTuple(args, y"#", &seed, &seed_len))
         return NULL;
     crypto_sign_publickey(verfkey, signkey, seed);
-    return Py_BuildValue("(s#s#)",
+    return Py_BuildValue("("y"#"y"#)",
                          verfkey, PUBLICKEYBYTES,
                          signkey, SECRETKEYBYTES);
 }
@@ -66,7 +76,7 @@ ed25519_sign(PyObject *self, PyObject *args)
     // Py_buffer is available in py2.6 and later.
     //// on the other hand, the funky NaCl API means we're already doing 3
     //// copies anyway, so a 4th isn't a big deal.
-    if (!PyArg_ParseTuple(args, "s#s#:signature",
+    if (!PyArg_ParseTuple(args, y"#"y"#:signature",
                           &msg, &msg_len,
                           &signkey, &signkey_len))
         return NULL;
@@ -80,7 +90,7 @@ ed25519_sign(PyObject *self, PyObject *args)
         return PyErr_NoMemory();
     crypto_sign(sig_and_msg, &sig_and_msg_len1, msg, msg_len, signkey);
     sig_and_msg_len2 = sig_and_msg_len1;
-    ret = Py_BuildValue("s#", sig_and_msg, sig_and_msg_len2);
+    ret = Py_BuildValue(y"#", sig_and_msg, sig_and_msg_len2);
     PyMem_Free(sig_and_msg);
     return ret;
 }
@@ -100,7 +110,7 @@ ed25519_open(PyObject *self, PyObject *args)
     Py_ssize_t msg_len2;
     PyObject *ret;
     int result;
-    if (!PyArg_ParseTuple(args, "s#s#:checkvalid",
+    if (!PyArg_ParseTuple(args, y"#"y"#:checkvalid",
                           &sig_and_msg, &sig_and_msg_len,
                           &verfkey, &verfkey_len ))
         return NULL;
@@ -128,7 +138,7 @@ ed25519_open(PyObject *self, PyObject *args)
     if (result == 0) {
         // good signature
         msg_len2 = msg_len1;
-        ret = Py_BuildValue("s#", msg, msg_len2);
+        ret = Py_BuildValue(y"#", msg, msg_len2);
         PyMem_Free(msg);
         return ret;
     }
@@ -152,6 +162,24 @@ static PyMethodDef ed25519_methods[] = {
 PyDoc_STRVAR(module_doc,
 "Low-level Ed25519 signature/verification functions.");
 
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef
+ed25519_module = {
+    PyModuleDef_HEAD_INIT,
+    "_ed25519",
+    module_doc,
+    -1,
+    ed25519_methods,
+};
+
+PyObject *
+PyInit__ed25519(void)
+{
+    PyObject *m = PyModule_Create(&ed25519_module);
+    if (m == NULL)
+        return m;
+#else
+
 /* Initialization function for the module (*must* be called init_ed25519) */
 
 PyMODINIT_FUNC
@@ -163,6 +191,8 @@ init_ed25519(void)
     m = Py_InitModule3("_ed25519", ed25519_methods, module_doc);
     if (m == NULL)
         return;
+#endif
+// common to both py2 and py3
 
     /* Add some symbolic constants to the module */
     if (BadSignatureError == NULL) {
@@ -171,24 +201,12 @@ init_ed25519(void)
         if (BadSignatureError == NULL)
             return;
     }
-    if (SECRETKEYBYTESObject == NULL) {
-        SECRETKEYBYTESObject = PyInt_FromLong(SECRETKEYBYTES);
-        if (SECRETKEYBYTESObject == NULL)
-            return;
-    }
-    if (PUBLICKEYBYTESObject == NULL) {
-        PUBLICKEYBYTESObject = PyInt_FromLong(PUBLICKEYBYTES);
-        if (PUBLICKEYBYTESObject == NULL)
-            return;
-    }
-    if (SIGNATUREBYTESObject == NULL) {
-        SIGNATUREBYTESObject = PyInt_FromLong(SIGNATUREBYTES);
-        if (SIGNATUREBYTESObject == NULL)
-            return;
-    }
     Py_INCREF(BadSignatureError);
     PyModule_AddObject(m, "BadSignatureError", BadSignatureError);
-    PyModule_AddObject(m, "SECRETKEYBYTES", SECRETKEYBYTESObject);
-    PyModule_AddObject(m, "PUBLICKEYBYTES", PUBLICKEYBYTESObject);
-    PyModule_AddObject(m, "SIGNATUREKEYBYTES", SIGNATUREBYTESObject);
+    PyModule_AddIntConstant(m, "SECRETKEYBYTES", SECRETKEYBYTES);
+    PyModule_AddIntConstant(m, "PUBLICKEYBYTES", PUBLICKEYBYTES);
+    PyModule_AddIntConstant(m, "SIGNATUREKEYBYTES", SIGNATUREBYTES);
+#if PY_MAJOR_VERSION >= 3
+    return m;
+#endif
 }
