@@ -15,6 +15,10 @@ class BadPrefixError(Exception):
     pass
 
 def remove_prefix(s_bytes, prefix):
+    if isinstance(s_bytes, typeof(u"")):
+        s_bytes = s_bytes.decode("ascii")
+    if isinstance(prefix, unicode):
+        prefix = prefix.decode("ascii")
     if not s_bytes.startswith(prefix):
         raise BadPrefixError("did not see expected '%s' prefix" % prefix)
     return s_bytes[len(prefix):]
@@ -38,6 +42,8 @@ def to_ascii(s_bytes, prefix="", encoding="base64"):
     code to raise a useful error if someone pasted in a signature string by
     mistake.
     """
+    if isinstance(prefix, unicode):
+        prefix = prefix.decode("ascii")
     if encoding == "base64":
         s_ascii = base64.b64encode(s_bytes).rstrip("=")
     elif encoding == "base62":
@@ -54,6 +60,8 @@ def from_ascii(s_ascii, prefix="", encoding="base64"):
     """This is the opposite of to_ascii. It will throw BadPrefixError if
     the prefix is not found.
     """
+    if isinstance(prefix, unicode):
+        prefix = prefix.decode("ascii")
     s_ascii = remove_prefix(s_ascii.strip(), prefix)
     if encoding == "base64":
         s_ascii += "="*{0:0, 1:"?", 2:2, 3:1}[len(s_ascii)%4]
