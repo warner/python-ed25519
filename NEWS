@@ -1,6 +1,15 @@
 
 User-Visible Changes in python-ed25519
 
+* Release 0.9 (06-Jan-2012)
+
+This release adds compatibility with python2.4, making this library
+compatible with py2.4, 2.5, 2.6, and 2.7 . In the long run, our compatibility
+target is probably 2.6 through 3.2, but py3 requires some deeper changes. In
+the meantime, it'd be nice to have at least one version which can be used by
+2.4 (this might be the last, though).
+
+
 * Release 0.8 (19-Nov-2011)
 
 This release probably adds Windows compatibility. To enable this, the
