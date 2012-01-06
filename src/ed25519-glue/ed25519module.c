@@ -15,6 +15,11 @@
 // this makes "s#" use Py_ssize_t instead of int
 #define PY_SSIZE_T_CLEAN 1
 #include "Python.h"
+#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
+typedef int Py_ssize_t;
+#define PY_SSIZE_T_MAX INT_MAX
+#define PY_SSIZE_T_MIN INT_MIN
+#endif
 
 static PyObject *BadSignatureError,
     *SECRETKEYBYTESObject, *PUBLICKEYBYTESObject, *SIGNATUREBYTESObject;
