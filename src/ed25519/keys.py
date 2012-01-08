@@ -16,21 +16,19 @@ class BadPrefixError(Exception):
 
 def remove_prefix(s_bytes, prefix):
     if not s_bytes.startswith(prefix):
-        raise BadPrefixError("did not see expected '%s' prefix" % prefix)
+        raise BadPrefixError("did not see expected '%s' prefix" % (prefix,))
     return s_bytes[len(prefix):]
 
 def to_ascii(s_bytes, prefix="", encoding="base64"):
     """Return a version-prefixed ASCII representation of the given binary
     string. 'encoding' indicates how to do the encoding, and can be one of:
      * base64
-     * base62
      * base32
      * base16 (or hex)
 
     This function handles bytes, not bits, so it does not append any trailing
     '=' (unlike standard base64.b64encode). It also lowercases the base32
-    output. base62 is nearly as compact as base64, but lacks the unfriendly
-    punctuation characters.
+    output.
 
     'prefix' will be prepended to the encoded form, and is useful for
     distinguishing the purpose and version of the binary string. E.g. you
@@ -40,8 +38,6 @@ def to_ascii(s_bytes, prefix="", encoding="base64"):
     """
     if encoding == "base64":
         s_ascii = base64.b64encode(s_bytes).rstrip("=")
-    elif encoding == "base62":
-        raise NotImplementedError
     elif encoding == "base32":
         s_ascii = base64.b32encode(s_bytes).rstrip("=").lower()
     elif encoding in ("base16", "hex"):
@@ -56,13 +52,10 @@ def from_ascii(s_ascii, prefix="", encoding="base64"):
     """
     s_ascii = remove_prefix(s_ascii.strip(), prefix)
     if encoding == "base64":
-        s_ascii += "="*{0:0, 1:"?", 2:2, 3:1}[len(s_ascii)%4]
+        s_ascii += "="*(4 - len(s_ascii)%4)
         s_bytes = base64.b64decode(s_ascii)
-    elif encoding == "base62":
-        raise NotImplementedError
     elif encoding == "base32":
-        s_ascii += "="*{0:0, 1:"?", 2:6, 3:"?",
-                        4:4, 5:3, 6:"?", 7:1}[len(s_ascii)%8]
+        s_ascii += "="*(8 - len(s_ascii)%8)
         s_bytes = base64.b32decode(s_ascii.upper())
     elif encoding in ("base16", "hex"):
         s_bytes = base64.b16decode(s_ascii.upper())
