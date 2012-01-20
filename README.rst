@@ -68,7 +68,7 @@ os.urandom() is weak.
 
 Unlike typical DSA/ECDSA algorithms, signing does *not* require a source of
 entropy. Ed25519 signatures are deterministic: using the same key to sign the
-same data any number of times will result in the same signature.
+same data any number of times will result in the same signature each time.
 
 
 Compilation
