@@ -8,6 +8,7 @@ versioneer.versionfile_build = "ed25519/_version.py"
 versioneer.tag_prefix = ""
 versioneer.parentdir_prefix = "ed25519-"
 
+commands = versioneer.get_cmdclass().copy()
 
 LONG_DESCRIPTION="""\
 Python bindings to the Ed25519 public-key signature system.
@@ -22,14 +23,34 @@ more details.
 """
 
 sources = ["src/ed25519-glue/ed25519module.c"]
-sources.extend(["src/ed25519-supercop-ref/"+s
-                for s in os.listdir("src/ed25519-supercop-ref")
-                if s.endswith(".c") and s!="test.c"])
+if False: # ref
+    sources.extend(["src/ed25519-supercop-ref/"+s
+                    for s in os.listdir("src/ed25519-supercop-ref")
+                    if s.endswith(".c") and s!="test.c"])
+else:
+    impl = "amd64-51-30k"
+    sdir = os.path.join("src", "ed25519-supercop-"+impl)
+    sources.extend([os.path.join(sdir, s)
+                    for s in os.listdir(sdir)
+                    if (s.endswith(".c") or s.endswith(".s")) and s!="test.c"])
 
 m = Extension("ed25519._ed25519",
               include_dirs=["src/ed25519-supercop-ref"], sources=sources)
 
-commands = versioneer.get_cmdclass().copy()
+# we need to add ".s" to the list of known source file extensions. This is
+# kept in a Compiler instance, created at the beginning of build_ext.run().
+# There are no convenient customize-the-compiler hooks (other than
+# monkey-patching distutils.sysconfig.customize_compiler), and run() is
+# large, so the cleanest way to get at this instance is to intercept the
+# build process in build_extensions(), called at the very end of run()
+
+from distutils.command.build_ext import build_ext
+class my_build_ext(build_ext):
+    def build_extensions(self):
+        # this is weird, but safe, if there are multiple extensions
+        self.compiler.src_extensions = self.compiler.src_extensions + [".s"]
+        return build_ext.build_extensions(self)
+commands["build_ext"] = my_build_ext
 
 class Test(Command):
     description = "run tests"
