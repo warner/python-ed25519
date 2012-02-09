@@ -1,6 +1,12 @@
 
 User-Visible Changes in python-ed25519
 
+* Release 1.0 (09-Feb-2012)
+
+Minor changes: remove mention of the unimplemented base62 encoding, update to
+versioneer-0.7 to make development smoother.
+
+
 * Release 0.9 (06-Jan-2012)
 
 This release adds compatibility with python2.4, making this library
