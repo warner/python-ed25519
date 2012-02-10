@@ -1,6 +1,7 @@
 #! /usr/bin/python
 
 import os, sys
+from binascii import hexlify, unhexlify
 import ed25519
 from hashlib import sha256
 
@@ -63,7 +64,7 @@ elif sys.argv[1] == "generate":
     else:
         sk_outfile = "signing.key"
         vk_outfile = "verifying.key"
-    vk_s = ed25519.to_ascii(vk_bytes, "verf0-", "base32")
+    vk_s = "verf0-"+hexlify(vk_bytes)
     open(sk_outfile,"w").write("sign0-"+sk_bytes)
     open(vk_outfile,"w").write(vk_s+"\n")
     print "wrote private signing key to", sk_outfile
@@ -71,20 +72,20 @@ elif sys.argv[1] == "generate":
 elif sys.argv[1] == "sign":
     sk_arg = sys.argv[2]
     msg_arg = sys.argv[3]
-    sk_s = data_from_arg(sk_arg, "sign0-", 52, False)
+    sk_s = data_from_arg(sk_arg, "sign0-", 64, False)
     sk = ed25519.SigningKey(remove_prefix("sign0-", sk_s))
-    sig = sk.sign(message_rep(msg_arg), prefix="sig0-", encoding="base32")
+    sig = "sig0-"+hexlify(sk.sign(message_rep(msg_arg)))
     print sig
 elif sys.argv[1] == "verify":
     vk_arg = sys.argv[2]
     msg_arg = sys.argv[3]
     sig_arg = sys.argv[4]
-    vk_bytes = ed25519.from_ascii(data_from_arg(vk_arg, "verf0-", 52, True),
-                                  prefix="verf0-", encoding="base32")
+    vk_s = data_from_arg(vk_arg, "verf0-", 64, True).strip()
+    vk_bytes = unhexlify(remove_prefix("verf0-", vk_s))
     vk = ed25519.VerifyingKey(vk_bytes)
-    sig = data_from_arg(sig_arg, "sig0-", 103, True)
-    vk.verify(sig, message_rep(msg_arg),
-              prefix="sig0-", encoding="base32") # could raise BadSignature
+    sig_s = data_from_arg(sig_arg, "sig0-", 128, True).strip()
+    sig_bytes = unhexlify(remove_prefix("sig0-", sig_s))
+    vk.verify(sig_bytes, message_rep(msg_arg)) # could raise BadSignature
     print "good signature!"
 else:
     help()

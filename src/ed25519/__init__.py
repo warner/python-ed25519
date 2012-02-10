@@ -1,10 +1,6 @@
-from keys import (BadSignatureError, BadPrefixError,
-                  SigningKey, VerifyingKey,
-                  remove_prefix, to_ascii, from_ascii)
+from keys import (BadSignatureError, SigningKey, VerifyingKey)
 
-(BadSignatureError, BadPrefixError,
- SigningKey, VerifyingKey,
- remove_prefix, to_ascii, from_ascii) # hush pyflakes
+(BadSignatureError, SigningKey, VerifyingKey) # hush pyflakes
 
 from _version import get_versions
 __version__ = get_versions()['version']

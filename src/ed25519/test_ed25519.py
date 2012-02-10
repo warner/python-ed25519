@@ -144,44 +144,6 @@ class Basic(unittest.TestCase):
         self.failIfEqual(sk2, "not a SigningKey")
         self.failIfEqual(vk2, "not a VerifyingKey")
 
-    def test_prefix(self):
-        sk = ed25519.SigningKey(os.urandom(32))
-        vk = ed25519.VerifyingKey(sk.get_verifying_key_bytes())
-
-        # and signatures
-        PREFIX = "sig0-"
-        p = sk.sign("msg", PREFIX)
-        self.failUnless(p.startswith(PREFIX), repr(p))
-        vk.verify(p, "msg", PREFIX)
-        self.failUnlessRaises(ed25519.BadPrefixError,
-                              vk.verify, p, "msg", prefix="WRONG-")
-
-    def test_ascii(self):
-        b2a = ed25519.to_ascii
-        a2b = ed25519.from_ascii
-        for prefix in ("", "prefix-"):
-            for length in range(0, 100):
-                b1 = "a"*length
-                for base in ("base64", "base32", "base16", "hex"):
-                    a = b2a(b1, prefix, base)
-                    b2 = a2b(a, prefix, base)
-                    self.failUnlessEqual(b1, b2)
-
-    def test_encoding(self):
-        sk_bytes = "\x88" * 32 # usually urandom(32)
-        sk = ed25519.SigningKey(sk_bytes)
-        vk = ed25519.VerifyingKey(sk.get_verifying_key_bytes())
-
-        def check(encoding, expected):
-            msg = "msg"
-            PREFIX="sig0-"
-            sig = sk.sign(msg, PREFIX, encoding)
-            self.failUnlessEqual(sig, expected)
-            vk.verify(sig, msg, PREFIX, encoding)
-        check("base64", "sig0-MNfdUir6tMlaYQ+/p8KANJ5d+bk8g2al76v5MeJCo6RiywxURda3sU580CyiW2FBG/Q7kDRswgYqxbkQw3o5CQ")
-        check("base32", "sig0-gdl52urk7k2mswtbb672pquagspf36nzhsbwnjppvp4tdyscuosgfsymkrc5nn5rjz6nalfclnqucg7uhoidi3gcayvmloiqyn5dsci")
-        check("hex", "sig0-30d7dd522afab4c95a610fbfa7c280349e5df9b93c8366a5efabf931e242a3a462cb0c5445d6b7b14e7cd02ca25b61411bf43b90346cc2062ac5b910c37a3909")
-
 
 if __name__ == '__main__':
     unittest.main()
