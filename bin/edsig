@@ -54,32 +54,34 @@ def message_rep(msg_arg):
 if len(sys.argv) < 2:
     help()
 elif sys.argv[1] == "generate":
-    sk,vk = ed25519.create_keypair()
+    sk_bytes = os.urandom(32)
+    sk = ed25519.SigningKey(sk_bytes)
+    vk_bytes = sk.get_verifying_key_bytes()
     if len(sys.argv) > 2:
         sk_outfile = sys.argv[2]+".signing.key"
         vk_outfile = sys.argv[2]+".verifying.key"
     else:
         sk_outfile = "signing.key"
         vk_outfile = "verifying.key"
-    sk_s = sk.to_seed(prefix="sign0-")
-    vk_s = vk.to_ascii("verf0-", "base32")
-    open(sk_outfile,"w").write(sk_s)
+    vk_s = ed25519.to_ascii(vk_bytes, "verf0-", "base32")
+    open(sk_outfile,"w").write("sign0-"+sk_bytes)
     open(vk_outfile,"w").write(vk_s+"\n")
     print "wrote private signing key to", sk_outfile
     print "write public verifying key to", vk_outfile
 elif sys.argv[1] == "sign":
     sk_arg = sys.argv[2]
     msg_arg = sys.argv[3]
-    sk = ed25519.SigningKey(data_from_arg(sk_arg, "sign0-", 52, False),
-                            prefix="sign0-")
+    sk_s = data_from_arg(sk_arg, "sign0-", 52, False)
+    sk = ed25519.SigningKey(remove_prefix("sign0-", sk_s))
     sig = sk.sign(message_rep(msg_arg), prefix="sig0-", encoding="base32")
     print sig
 elif sys.argv[1] == "verify":
     vk_arg = sys.argv[2]
     msg_arg = sys.argv[3]
     sig_arg = sys.argv[4]
-    vk = ed25519.VerifyingKey(data_from_arg(vk_arg, "verf0-", 52, True),
-                              prefix="verf0-", encoding="base32")
+    vk_bytes = ed25519.from_ascii(data_from_arg(vk_arg, "verf0-", 52, True),
+                                  prefix="verf0-", encoding="base32")
+    vk = ed25519.VerifyingKey(vk_bytes)
     sig = data_from_arg(sig_arg, "sig0-", 103, True)
     vk.verify(sig, message_rep(msg_arg),
               prefix="sig0-", encoding="base32") # could raise BadSignature
