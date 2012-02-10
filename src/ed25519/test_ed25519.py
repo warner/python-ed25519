@@ -1,4 +1,5 @@
 
+import os
 import unittest
 import time
 from binascii import hexlify, unhexlify
@@ -82,137 +83,78 @@ class Basic(unittest.TestCase):
                               raw.open,
                               flip_bit(sig, in_byte=33)+msg, vk_s)
 
-    def test_keypair(self):
-        sk, vk = ed25519.create_keypair()
-        self.failUnless(isinstance(sk, ed25519.SigningKey), sk)
-        self.failUnless(isinstance(vk, ed25519.VerifyingKey), vk)
-        sk2, vk2 = ed25519.create_keypair()
-        self.failIfEqual(hexlify(sk.to_bytes()), hexlify(sk2.to_bytes()))
-
-        # you can control the entropy source
-        def not_so_random(length):
-            return "4"*length
-        sk1, vk1 = ed25519.create_keypair(entropy=not_so_random)
-        self.failUnlessEqual(sk1.to_ascii(encoding="base64"),
-                             "NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ")
-        self.failUnlessEqual(vk1.to_ascii(encoding="base64"),
-                             "6yzxO/euOl9hQWih+wknLTl3HsS4UjcngV5GbK+O4WM")
-        sk2, vk2 = ed25519.create_keypair(entropy=not_so_random)
-        self.failUnlessEqual(sk1.to_ascii(encoding="base64"),
-                             sk2.to_ascii(encoding="base64"))
-        self.failUnlessEqual(vk1.to_ascii(encoding="base64"),
-                             vk2.to_ascii(encoding="base64"))
-
 
     def test_publickey(self):
-        seed = unhexlify("4ba96b0b5303328c7405220598a587c4"
-                         "acb06ed9a9601d149f85400195f1ec3d")
-        sk = ed25519.SigningKey(seed)
-        self.failUnlessEqual(hexlify(sk.to_bytes()),
-                             ("4ba96b0b5303328c7405220598a587c4"
-                              "acb06ed9a9601d149f85400195f1ec3d"
-                              "a66d161e090652b054740748f059f92a"
-                              "5b731f1c27b05571f6d942e4f8b7b264"))
-        self.failUnlessEqual(hexlify(sk.to_seed()),
-                             ("4ba96b0b5303328c7405220598a587c4"
-                              "acb06ed9a9601d149f85400195f1ec3d"))
-        self.failUnlessRaises(ValueError,
-                              ed25519.SigningKey, "wrong length")
-        sk2 = ed25519.SigningKey(seed)
-        self.failUnlessEqual(sk, sk2)
+        sk_bytes = unhexlify("4ba96b0b5303328c7405220598a587c4"
+                             "acb06ed9a9601d149f85400195f1ec3d")
+        sk = ed25519.SigningKey(sk_bytes)
+        self.failUnlessRaises(ValueError, ed25519.SigningKey, "wrong length")
+
+        vk_bytes = sk.get_verifying_key_bytes()
+        self.failUnlessEqual(hexlify(vk_bytes),
+                             "a66d161e090652b054740748f059f92a"
+                             "5b731f1c27b05571f6d942e4f8b7b264")
+
+        vk = ed25519.VerifyingKey(vk_bytes)
+        self.failUnlessRaises(ValueError, ed25519.VerifyingKey, "wrong length")
 
     def test_OOP(self):
-        sk_s = unhexlify("4ba96b0b5303328c7405220598a587c4"
-                         "acb06ed9a9601d149f85400195f1ec3d"
-                         "a66d161e090652b054740748f059f92a"
-                         "5b731f1c27b05571f6d942e4f8b7b264")
-        sk = ed25519.SigningKey(sk_s)
-        self.failUnlessEqual(len(sk.to_bytes()), 64)
-        self.failUnlessEqual(sk.to_bytes(), sk_s)
-
-        sk2_seed = unhexlify("4ba96b0b5303328c7405220598a587c4"
+        sk_bytes = unhexlify("4ba96b0b5303328c7405220598a587c4"
                              "acb06ed9a9601d149f85400195f1ec3d")
-        sk2 = ed25519.SigningKey(sk2_seed)
-        self.failUnlessEqual(sk2.to_bytes(), sk.to_bytes())
+        sk = ed25519.SigningKey(sk_bytes)
 
-        vk = sk.get_verifying_key()
-        self.failUnlessEqual(len(vk.to_bytes()), 32)
-        exp_vks = unhexlify("a66d161e090652b054740748f059f92a"
-                            "5b731f1c27b05571f6d942e4f8b7b264")
-        self.failUnlessEqual(vk.to_bytes(), exp_vks)
-        self.failUnlessEqual(ed25519.VerifyingKey(vk.to_bytes()), vk)
+        self.failUnlessEqual(hexlify(sk.get_verifying_key_bytes()),
+                             "a66d161e090652b054740748f059f92a"
+                             "5b731f1c27b05571f6d942e4f8b7b264")
+        vk = ed25519.VerifyingKey(sk.get_verifying_key_bytes())
+
         msg = "hello world"
         sig = sk.sign(msg)
         self.failUnlessEqual(len(sig), 64)
-        exp_sig = unhexlify("6eaffe94f2972b35158b6aaa9b69c1da"
-                            "97f0896aca29c41b1dd7b32e6c9e2ff6"
-                            "76fc8d8b034709cdcc37d8aeb86bebfb"
-                            "173ace3c319e211ea1d7e8d8884c1808")
-        self.failUnlessEqual(sig, exp_sig)
+        self.failUnlessEqual(hexlify(sig),
+                             "6eaffe94f2972b35158b6aaa9b69c1da"
+                             "97f0896aca29c41b1dd7b32e6c9e2ff6"
+                             "76fc8d8b034709cdcc37d8aeb86bebfb"
+                             "173ace3c319e211ea1d7e8d8884c1808")
         self.failUnlessEqual(vk.verify(sig, msg), None) # also, don't throw
         self.failUnlessRaises(ed25519.BadSignatureError,
                               vk.verify, sig, msg+".. NOT!")
 
     def test_object_identity(self):
-        sk1_s = unhexlify("ef32972ae3f1252a5aa1395347ea008c"
-                          "bd2fed0773a4ea45e2d2d06c8cf8fbd4"
-                          "c024601a9c5b854fb100ff3116cf4f22"
-                          "a311565f027391cb49d3bbe11c44399d")
-        sk2_s = unhexlify("3d550c158900b4c2922b6656d2f80572"
-                          "89de4ee65043745179685ae7d29b944d"
-                          "672b8a2cb23f9e75e1d46ce249cd9c04"
-                          "68f816f1c734a102822b60e18b41eacd")
-        sk1a = ed25519.SigningKey(sk1_s)
-        sk1b = ed25519.SigningKey(sk1_s)
-        vk1a = sk1a.get_verifying_key()
-        vk1b = sk1b.get_verifying_key()
-        sk2 = ed25519.SigningKey(sk2_s)
-        vk2 = sk2.get_verifying_key()
+        sk1_bytes = unhexlify("ef32972ae3f1252a5aa1395347ea008c"
+                              "bd2fed0773a4ea45e2d2d06c8cf8fbd4")
+        sk2_bytes = unhexlify("3d550c158900b4c2922b6656d2f80572"
+                              "89de4ee65043745179685ae7d29b944d")
+        sk1a = ed25519.SigningKey(sk1_bytes)
+        sk1b = ed25519.SigningKey(sk1_bytes)
+        sk2 = ed25519.SigningKey(sk2_bytes)
         self.failUnlessEqual(sk1a, sk1b)
         self.failIfEqual(sk1a, sk2)
+
+        vk1_bytes = sk1a.get_verifying_key_bytes()
+        self.failUnlessEqual(vk1_bytes, sk1b.get_verifying_key_bytes())
+        vk2_bytes = sk2.get_verifying_key_bytes()
+        vk1a = ed25519.VerifyingKey(vk1_bytes)
+        vk1b = ed25519.VerifyingKey(vk1_bytes)
+        vk2 = ed25519.VerifyingKey(vk2_bytes)
         self.failUnlessEqual(vk1a, vk1b)
         self.failIfEqual(vk1a, vk2)
 
+        # exercise compare-against-other-type
         self.failIfEqual(sk2, "not a SigningKey")
         self.failIfEqual(vk2, "not a VerifyingKey")
 
     def test_prefix(self):
-        sk1,vk1 = ed25519.create_keypair()
-        PREFIX = "private0-"
-        p = sk1.to_bytes(PREFIX)
-        # that gives us a binary string with a prefix
-        self.failUnless(p.startswith(PREFIX), repr(p))
-        sk2 = ed25519.SigningKey(p, prefix=PREFIX)
-        self.failUnlessEqual(sk1, sk2)
-        self.failUnlessEqual(repr(sk1.to_bytes()), repr(sk2.to_bytes()))
-        self.failUnlessRaises(ed25519.BadPrefixError,
-                              ed25519.SigningKey, p, prefix="WRONG-")
-        # SigningKey.to_seed() can do a prefix too
-        p = sk1.to_seed(PREFIX)
-        self.failUnless(p.startswith(PREFIX), repr(p))
-        sk3 = ed25519.SigningKey(p, prefix=PREFIX)
-        self.failUnlessEqual(sk1, sk3)
-        self.failUnlessEqual(repr(sk1.to_bytes()), repr(sk3.to_bytes()))
-        self.failUnlessRaises(ed25519.BadPrefixError,
-                              ed25519.SigningKey, p, prefix="WRONG-")
-
-        # verifying keys can do this too
-        PREFIX = "public0-"
-        p = vk1.to_bytes(PREFIX)
-        self.failUnless(p.startswith(PREFIX), repr(p))
-        vk2 = ed25519.VerifyingKey(p, prefix=PREFIX)
-        self.failUnlessEqual(vk1, vk2)
-        self.failUnlessEqual(repr(vk1.to_bytes()), repr(vk2.to_bytes()))
-        self.failUnlessRaises(ed25519.BadPrefixError,
-                              ed25519.VerifyingKey, p, prefix="WRONG-")
+        sk = ed25519.SigningKey(os.urandom(32))
+        vk = ed25519.VerifyingKey(sk.get_verifying_key_bytes())
 
         # and signatures
         PREFIX = "sig0-"
-        p = sk1.sign("msg", PREFIX)
+        p = sk.sign("msg", PREFIX)
         self.failUnless(p.startswith(PREFIX), repr(p))
-        vk1.verify(p, "msg", PREFIX)
+        vk.verify(p, "msg", PREFIX)
         self.failUnlessRaises(ed25519.BadPrefixError,
-                              vk1.verify, p, "msg", prefix="WRONG-")
+                              vk.verify, p, "msg", prefix="WRONG-")
 
     def test_ascii(self):
         b2a = ed25519.to_ascii
@@ -226,41 +168,19 @@ class Basic(unittest.TestCase):
                     self.failUnlessEqual(b1, b2)
 
     def test_encoding(self):
-        sk_s = "\x88" * 32 # usually urandom(32)
-        sk1 = ed25519.SigningKey(sk_s)
-        vk1 = sk1.get_verifying_key()
+        sk_bytes = "\x88" * 32 # usually urandom(32)
+        sk = ed25519.SigningKey(sk_bytes)
+        vk = ed25519.VerifyingKey(sk.get_verifying_key_bytes())
 
-        def check1(encoding, expected):
-            PREFIX = "private0-"
-            p = sk1.to_ascii(PREFIX, encoding)
-            self.failUnlessEqual(p, expected)
-            sk2 = ed25519.SigningKey(p, prefix=PREFIX, encoding=encoding)
-            self.failUnlessEqual(repr(sk1.to_bytes()), repr(sk2.to_bytes()))
-            self.failUnlessEqual(sk1, sk2)
-        check1("base64", "private0-iIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIg")
-        check1("base32", "private0-rceirceirceirceirceirceirceirceirceirceirceirceircea")
-        check1("hex", "private0-8888888888888888888888888888888888888888888888888888888888888888")
-
-        def check2(encoding, expected):
-            PREFIX="public0-"
-            p = vk1.to_ascii(PREFIX, encoding)
-            self.failUnlessEqual(p, expected)
-            vk2 = ed25519.VerifyingKey(p, prefix=PREFIX, encoding=encoding)
-            self.failUnlessEqual(repr(vk1.to_bytes()), repr(vk2.to_bytes()))
-            self.failUnlessEqual(vk1, vk2)
-        check2("base64", "public0-skkdlQKuKGMKK6yy4MdFEP/N0yjDNP8+E5PnWy0x59w")
-        check2("base32", "public0-wjer3ficvyuggcrlvszobr2fcd743uziym2p6pqtsptvwljr47oa")
-        check2("hex", "public0-b2491d9502ae28630a2bacb2e0c74510ffcdd328c334ff3e1393e75b2d31e7dc")
-
-        def check3(encoding, expected):
+        def check(encoding, expected):
             msg = "msg"
             PREFIX="sig0-"
-            sig = sk1.sign(msg, PREFIX, encoding)
+            sig = sk.sign(msg, PREFIX, encoding)
             self.failUnlessEqual(sig, expected)
-            vk1.verify(sig, msg, PREFIX, encoding)
-        check3("base64", "sig0-MNfdUir6tMlaYQ+/p8KANJ5d+bk8g2al76v5MeJCo6RiywxURda3sU580CyiW2FBG/Q7kDRswgYqxbkQw3o5CQ")
-        check3("base32", "sig0-gdl52urk7k2mswtbb672pquagspf36nzhsbwnjppvp4tdyscuosgfsymkrc5nn5rjz6nalfclnqucg7uhoidi3gcayvmloiqyn5dsci")
-        check3("hex", "sig0-30d7dd522afab4c95a610fbfa7c280349e5df9b93c8366a5efabf931e242a3a462cb0c5445d6b7b14e7cd02ca25b61411bf43b90346cc2062ac5b910c37a3909")
+            vk.verify(sig, msg, PREFIX, encoding)
+        check("base64", "sig0-MNfdUir6tMlaYQ+/p8KANJ5d+bk8g2al76v5MeJCo6RiywxURda3sU580CyiW2FBG/Q7kDRswgYqxbkQw3o5CQ")
+        check("base32", "sig0-gdl52urk7k2mswtbb672pquagspf36nzhsbwnjppvp4tdyscuosgfsymkrc5nn5rjz6nalfclnqucg7uhoidi3gcayvmloiqyn5dsci")
+        check("hex", "sig0-30d7dd522afab4c95a610fbfa7c280349e5df9b93c8366a5efabf931e242a3a462cb0c5445d6b7b14e7cd02ca25b61411bf43b90346cc2062ac5b910c37a3909")
 
 
 if __name__ == '__main__':

@@ -58,8 +58,10 @@ def from_ascii(s_ascii, prefix="", encoding="base64"):
 class SigningKey(object):
     # this is how all keys are created
     def __init__(self, sk_bytes):
-        assert isinstance(sk_bytes, type("")) # string, really bytes
-        assert len(sk_bytes) == 32
+        if not isinstance(sk_bytes, type("")):
+            raise TypeError("must be bytes, not %s" % type(sk_bytes))
+        if len(sk_bytes) != 32:
+            raise ValueError("must be exactly 32 bytes")
         vk_bytes, sk_and_vk = _ed25519.publickey(sk_bytes)
         assert sk_and_vk[:32] == sk_bytes
         assert vk_bytes == sk_and_vk[32:]
@@ -88,8 +90,10 @@ class SigningKey(object):
 
 class VerifyingKey(object):
     def __init__(self, vk_bytes):
-        assert isinstance(vk_bytes, type("")) # string, really bytes
-        assert len(vk_bytes) == 32
+        if not isinstance(vk_bytes, type("")):
+            raise TypeError("must be bytes, not %s" % type(vk_bytes))
+        if len(vk_bytes) != 32:
+            raise ValueError("must be exactly 32 bytes")
         self.vk_bytes = vk_bytes
 
     def __eq__(self, them):
@@ -122,6 +126,5 @@ def selftest():
     sig = sk.sign(message, prefix="sig0-", encoding="base64")
     assert sig == "sig0-E/QrwtSF52x8+q0l4ahA7eJbRKc777ClKNg217Q0z4fiYMCdmAOI+rTLVkiFhX6k3D+wQQfKdJYMxaTUFfv1DQ", sig
     vk.verify(sig, message, prefix="sig0-", encoding="base64")
-    print "selftest ok"
 
 selftest()
