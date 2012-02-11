@@ -9,7 +9,7 @@ Preconditions:
    |f| bounded by 1.1*2^26,1.1*2^25,1.1*2^26,1.1*2^25,etc.
 */
 
-static const char zero[32];
+static const unsigned char zero[32];
 
 int fe_isnonzero(const fe f)
 {
