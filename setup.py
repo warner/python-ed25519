@@ -22,12 +22,13 @@ more details.
 """
 
 sources = ["src/ed25519-glue/ed25519module.c"]
-sources.extend(["src/ed25519-supercop-ref10/"+s
-                for s in os.listdir("src/ed25519-supercop-ref10")
-                if s.endswith(".c") and s!="test.c" and s!="keypair.c"])
+sources.extend(["src/ed25519-supercop-amd64-64-24k/"+s
+                for s in os.listdir("src/ed25519-supercop-amd64-64-24k")
+                if ((s.endswith(".c") or s.endswith(".s"))
+                    and s!="test.c" and s!="keypair.c")])
 
 m = Extension("ed25519._ed25519",
-              include_dirs=["src/ed25519-supercop-ref10"], sources=sources)
+              include_dirs=["src/ed25519-supercop-amd64-64-24k"], sources=sources)
 
 commands = versioneer.get_cmdclass().copy()
 
