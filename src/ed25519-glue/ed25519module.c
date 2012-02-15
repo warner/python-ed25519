@@ -42,7 +42,7 @@ ed25519_publickey(PyObject *self, PyObject *args)
     unsigned char verfkey[PUBLICKEYBYTES];
     unsigned char signkey[SECRETKEYBYTES];
     unsigned char *seed;
-    unsigned int seed_len;
+    Py_ssize_t seed_len;
     if (!PyArg_ParseTuple(args, "s#", &seed, &seed_len))
         return NULL;
     crypto_sign_publickey(verfkey, signkey, seed);
