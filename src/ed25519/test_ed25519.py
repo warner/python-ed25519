@@ -43,6 +43,45 @@ class Basic(unittest.TestCase):
         self.failUnlessEqual(raw.PUBLICKEYBYTES, 32)
         self.failUnlessEqual(raw.SIGNATUREKEYBYTES, 64)
 
+    def test_raw(self):
+        sk_s = "\x00" * 32 # usually urandom(32)
+        vk_s, skvk_s = raw.publickey(sk_s)
+        self.failUnlessEqual(len(vk_s), 32)
+        exp_vks = unhexlify("3b6a27bcceb6a42d62a3a8d02a6f0d73"
+                            "653215771de243a63ac048a18b59da29")
+        self.failUnlessEqual(vk_s, exp_vks)
+        self.failUnlessEqual(skvk_s[:32], sk_s)
+        self.failUnlessEqual(skvk_s[32:], vk_s)
+        msg = "hello world"
+        msg_and_sig = raw.sign(msg, skvk_s)
+        sig = msg_and_sig[:-len(msg)]
+        self.failUnlessEqual(len(sig), 64)
+        exp_sig = unhexlify("b0b47780f096ae60bfff8d8e7b19c36b"
+                            "321ae6e69cca972f2ff987ef30f20d29"
+                            "774b53bae404485c4391ddf1b3f37aaa"
+                            "8a9747f984eb0884e8aa533386e73305")
+        self.failUnlessEqual(sig, exp_sig)
+        ret = raw.open(sig+msg, vk_s) # don't raise exception
+        self.failUnlessEqual(ret, msg)
+        self.failUnlessRaises(raw.BadSignatureError,
+                              raw.open,
+                              sig+msg+".. NOT!", vk_s)
+        self.failUnlessRaises(raw.BadSignatureError,
+                              raw.open,
+                              sig+flip_bit(msg), vk_s)
+        self.failUnlessRaises(raw.BadSignatureError,
+                              raw.open,
+                              sig+msg, flip_bit(vk_s))
+        self.failUnlessRaises(raw.BadSignatureError,
+                              raw.open,
+                              sig+msg, flip_bit(vk_s, in_byte=2))
+        self.failUnlessRaises(raw.BadSignatureError,
+                              raw.open,
+                              flip_bit(sig)+msg, vk_s)
+        self.failUnlessRaises(raw.BadSignatureError,
+                              raw.open,
+                              flip_bit(sig, in_byte=33)+msg, vk_s)
+
     def test_keypair(self):
         sk, vk = ed25519.create_keypair()
         self.failUnless(isinstance(sk, ed25519.SigningKey), sk)
