@@ -185,9 +185,10 @@ static void setneutral(ge25519 *r)
 /* return 0 on success, -1 otherwise */
 int ge25519_unpackneg_vartime(ge25519_p3 *r, const unsigned char p[32])
 {
+  unsigned char par;
   fe25519 t, chk, num, den, den2, den4, den6;
   fe25519_setone(&r->z);
-  unsigned char par = p[31] >> 7;
+  par = p[31] >> 7;
   fe25519_unpack(&r->y, p); 
   fe25519_square(&num, &r->y); /* x = y^2 */
   fe25519_mul(&den, &num, &ge25519_ecd); /* den = dy^2 */
@@ -253,6 +254,7 @@ void ge25519_double_scalarmult_vartime(ge25519_p3 *r, const ge25519_p3 *p1, cons
   ge25519_p1p1 tp1p1;
   ge25519_p3 pre[16];
   unsigned char b[127];
+  int i;
 
   /* precomputation                                                        s2 s1 */
   setneutral(pre);                                                      /* 00 00 */
@@ -276,7 +278,6 @@ void ge25519_double_scalarmult_vartime(ge25519_p3 *r, const ge25519_p3 *p1, cons
 
   /* scalar multiplication */
   *r = pre[b[126]];
-  int i;
   for(i=125;i>=0;i--)
   {
     dbl_p1p1(&tp1p1, (ge25519_p2 *)r);

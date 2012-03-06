@@ -106,10 +106,10 @@ void fe25519_pack(unsigned char r[32], const fe25519 *x)
 
 int fe25519_iszero(const fe25519 *x)
 {
-  int i;
+  int i, r;
   fe25519 t = *x;
   fe25519_freeze(&t);
-  int r = equal(t.v[0],0);
+  r = equal(t.v[0],0);
   for(i=1;i<32;i++) 
     r &= equal(t.v[i],0);
   return r;
@@ -117,11 +117,11 @@ int fe25519_iszero(const fe25519 *x)
 
 int fe25519_iseq_vartime(const fe25519 *x, const fe25519 *y)
 {
+  int i;
   fe25519 t1 = *x;
   fe25519 t2 = *y;
   fe25519_freeze(&t1);
   fe25519_freeze(&t2);
-  int i;
   for(i=0;i<32;i++)
     if(t1.v[i] != t2.v[i]) return 0;
   return 1;
