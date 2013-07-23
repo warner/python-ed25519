@@ -1,6 +1,11 @@
 
 User-Visible Changes in python-ed25519
 
+* Release 1.2 (22-Jul-2013)
+
+Don't require C99 features that are lacking on some Microsoft compilers.
+Thanks to Samuel "Dcoder" Neves for the patch, via pycryptopp.
+
 * Release 1.1 (15-Feb-2012)
 
 Fix a segfault that occurred on 64bit systems, at least on Fedora/gcc-4.7,
