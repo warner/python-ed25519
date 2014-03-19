@@ -2,6 +2,8 @@
  Python Bindings to Ed25519 Digital Signature System
 =====================================================
 
+.. image:: https://travis-ci.org/warner/python-ed25519.png?branch=master   :target: https://travis-ci.org/warner/python-ed25519
+
 This package provides python bindings to a C implementation of the Ed25519
 public-key signature system [1]_. The C code is copied from the SUPERCOP
 benchmark suite [2]_, using the portable "ref" implementation (not the
