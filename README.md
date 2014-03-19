@@ -222,7 +222,7 @@ vk = VerifyingKey(ascii, prefix=, encoding=)
 ```
 
 
-## footnotes
+
 
 [1]: http://ed25519.cr.yp.to/
 [2]: http://bench.cr.yp.to/supercop.html
