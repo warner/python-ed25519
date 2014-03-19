@@ -9,3 +9,4 @@ script:
   - python setup.py build
   - python setup.py test
   - python setup.py test_kat
+  - python setup.py speed
