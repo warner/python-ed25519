@@ -1,11 +1,12 @@
 #! /usr/bin/python
+from __future__ import print_function
 
 import os, sys
 import ed25519
 from hashlib import sha256
 
 def help():
-    print """\
+    print("""\
 Usage: (ed25519 version %s)
 
  edsig generate [STEM]
@@ -22,7 +23,7 @@ Usage: (ed25519 version %s)
 
 Key-providing arguments can either be the key itself, or point to a file
 containing the key.
-""" % ed25519.__version__
+""" % ed25519.__version__)
 
 def remove_prefix(prefix, s):
     if not s.startswith(prefix):
@@ -65,15 +66,15 @@ elif sys.argv[1] == "generate":
     vk_s = vk.to_ascii("verf0-", "base32")
     open(sk_outfile,"w").write(sk_s)
     open(vk_outfile,"w").write(vk_s+"\n")
-    print "wrote private signing key to", sk_outfile
-    print "write public verifying key to", vk_outfile
+    print("wrote private signing key to", sk_outfile)
+    print("write public verifying key to", vk_outfile)
 elif sys.argv[1] == "sign":
     sk_arg = sys.argv[2]
     msg_arg = sys.argv[3]
     sk = ed25519.SigningKey(data_from_arg(sk_arg, "sign0-", 52, False),
                             prefix="sign0-")
     sig = sk.sign(message_rep(msg_arg), prefix="sig0-", encoding="base32")
-    print sig
+    print(sig)
 elif sys.argv[1] == "verify":
     vk_arg = sys.argv[2]
     msg_arg = sys.argv[3]
@@ -83,6 +84,6 @@ elif sys.argv[1] == "verify":
     sig = data_from_arg(sig_arg, "sig0-", 103, True)
     vk.verify(sig, message_rep(msg_arg),
               prefix="sig0-", encoding="base32") # could raise BadSignature
-    print "good signature!"
+    print("good signature!")
 else:
     help()

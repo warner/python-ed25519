@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 import unittest
 import time
 from binascii import hexlify, unhexlify
@@ -26,8 +26,8 @@ class Basic(unittest.TestCase):
         else:
             elapsed = now - self.timer
             self.timer = now
-            print " (%f elapsed)" % elapsed
-        print msg
+            print(" (%f elapsed)" % elapsed)
+        print(msg)
 
     def test_version(self):
         # just make sure it can be retrieved

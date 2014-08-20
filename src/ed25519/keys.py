@@ -4,7 +4,7 @@ import _ed25519
 BadSignatureError = _ed25519.BadSignatureError
 
 def create_keypair(entropy=os.urandom):
-    SEEDLEN = _ed25519.SECRETKEYBYTES/2
+    SEEDLEN = int(_ed25519.SECRETKEYBYTES/2)
     assert SEEDLEN == 32
     seed = entropy(SEEDLEN)
     sk = SigningKey(seed)
@@ -36,12 +36,14 @@ def to_ascii(s_bytes, prefix="", encoding="base64"):
     code to raise a useful error if someone pasted in a signature string by
     mistake.
     """
+    if isinstance(prefix, bytes):
+        prefix = prefix.decode('ascii')
     if encoding == "base64":
-        s_ascii = base64.b64encode(s_bytes).rstrip("=")
+        s_ascii = base64.b64encode(s_bytes).decode('ascii').rstrip("=")
     elif encoding == "base32":
-        s_ascii = base64.b32encode(s_bytes).rstrip("=").lower()
+        s_ascii = base64.b32encode(s_bytes).decode('ascii').rstrip("=").lower()
     elif encoding in ("base16", "hex"):
-        s_ascii = base64.b16encode(s_bytes).lower()
+        s_ascii = base64.b16encode(s_bytes).decode('ascii').lower()
     else:
         raise NotImplementedError
     return prefix+s_ascii
@@ -66,7 +68,7 @@ def from_ascii(s_ascii, prefix="", encoding="base64"):
 class SigningKey(object):
     # this can only be used to reconstruct a key created by create_keypair().
     def __init__(self, sk_s, prefix="", encoding=None):
-        assert isinstance(sk_s, type("")) # string, really bytes
+        assert isinstance(sk_s, bytes)
         sk_s = remove_prefix(sk_s, prefix)
         if encoding is not None:
             sk_s = from_ascii(sk_s, encoding=encoding)
@@ -111,7 +113,7 @@ class SigningKey(object):
 
 class VerifyingKey(object):
     def __init__(self, vk_s, prefix="", encoding=None):
-        assert isinstance(vk_s, type("")) # string, really bytes
+        assert isinstance(vk_s, bytes)
         vk_s = remove_prefix(vk_s, prefix)
         if encoding is not None:
             vk_s = from_ascii(vk_s, encoding=encoding)
