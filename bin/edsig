@@ -36,7 +36,7 @@ def data_from_arg(arg, prefix, keylen, readable):
         and len(remove_prefix(prefix, arg))==keylen):
         return arg
     if os.path.isfile(arg):
-        return open(arg,"r").read()
+        return open(arg,"rb").read()
     raise ValueError("unable to get data from '%s'" % arg)
 
 def message_rep(msg_arg):
@@ -49,6 +49,8 @@ def message_rep(msg_arg):
         data = f.read(16*1024)
         if not data:
             break
+        if not isinstance(data, bytes):
+            data = data.encode(sys.stdin.encoding)
         h.update(data)
     return h.digest()
 
@@ -63,9 +65,9 @@ elif sys.argv[1] == "generate":
         sk_outfile = "signing.key"
         vk_outfile = "verifying.key"
     sk_s = sk.to_seed(prefix="sign0-")
-    vk_s = vk.to_ascii("verf0-", "base32")
-    open(sk_outfile,"w").write(sk_s)
-    open(vk_outfile,"w").write(vk_s+"\n")
+    vk_s = vk.to_ascii("verf0-", "base32").encode('ascii')
+    open(sk_outfile,"wb").write(sk_s)
+    open(vk_outfile,"wb").write(vk_s+b"\n")
     print("wrote private signing key to", sk_outfile)
     print("write public verifying key to", vk_outfile)
 elif sys.argv[1] == "sign":
