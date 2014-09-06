@@ -79,12 +79,12 @@ class Speed(Test):
 
         sys.stdout.write(" signing:")
         main(["-n", "1000",
-              "-s", "import ed25519; sk,vk=ed25519.create_keypair(); msg='hello world'",
+              "-s", "import ed25519; sk,vk=ed25519.create_keypair(); msg=b'hello world'",
               "sk.sign(msg)"])
 
         sys.stdout.write(" verifying:")
         main(["-n", "1000",
-              "-s", "import ed25519; sk,vk=ed25519.create_keypair(); msg='hello world'; sig=sk.sign(msg)",
+              "-s", "import ed25519; sk,vk=ed25519.create_keypair(); msg=b'hello world'; sig=sk.sign(msg)",
               "vk.verify(sig,msg)"])
 commands["speed"] = Speed
 
