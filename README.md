@@ -21,8 +21,8 @@ and RSA-3072.
 ## Dependencies
 
 This library includes a copy of all the C code necessary. You will need
-Python 2.x (2.5 or later, not 3.x) and a C compiler. The tests are run
-automatically against python2.5, python2.6, and python2.7 .
+Python 2.x (2.6 or later) or Python 3.x (3.3 or later) and a C compiler.
+The tests are run automatically against python 2.6, 2.7, 3.3 and 3.4.
 
 
 ## Speed and Key Sizes
@@ -166,7 +166,7 @@ message. The signature is 64 bytes, but can be generated in printable form
 with the encoding= argument:
 
 ```python
-sig = signing_key.sign("hello world", encoding="base64")
+sig = signing_key.sign(b"hello world", encoding="base64")
 print "sig is:", sig
 ```
 
@@ -175,10 +175,10 @@ ed25519.VerifyingKey instance from the serialized string, then use its
 .verify() method on the signature and message:
 
 ```python
-vkey_hex = "1246b84985e1ab5f83f4ec2bdf271114666fd3d9e24d12981a3c861b9ed523c6"
+vkey_hex = b"1246b84985e1ab5f83f4ec2bdf271114666fd3d9e24d12981a3c861b9ed523c6"
 verifying_key = ed25519.VerifyingKey(vkey_hex, encoding="hex")
 try:
-  verifying_key.verify(sig, "hello world", encoding="base64")
+  verifying_key.verify(sig, b"hello world", encoding="base64")
   print "signature is good"
 except ed25519.BadSignatureError:
   print "signature is bad!"
