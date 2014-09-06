@@ -6,7 +6,7 @@ from binascii import hexlify, unhexlify
 import ed25519
 from ed25519 import _ed25519 as raw
 
-if sys.version_info.major == 3:
+if sys.version_info[0] == 3:
     def int2byte(i):
         return bytes((i,))
 else:
