@@ -15,7 +15,8 @@ class BadPrefixError(Exception):
     pass
 
 def remove_prefix(s_bytes, prefix):
-    if not s_bytes.startswith(prefix):
+    assert(type(s_bytes) == type(prefix))
+    if s_bytes[:len(prefix)] != prefix:
         raise BadPrefixError("did not see expected '%s' prefix" % (prefix,))
     return s_bytes[len(prefix):]
 
@@ -36,8 +37,9 @@ def to_ascii(s_bytes, prefix="", encoding="base64"):
     code to raise a useful error if someone pasted in a signature string by
     mistake.
     """
-    if isinstance(prefix, bytes):
-        prefix = prefix.decode('ascii')
+    assert isinstance(s_bytes, bytes)
+    if not isinstance(prefix, bytes):
+        prefix = prefix.encode('ascii')
     if encoding == "base64":
         s_ascii = base64.b64encode(s_bytes).decode('ascii').rstrip("=")
     elif encoding == "base32":
@@ -46,7 +48,7 @@ def to_ascii(s_bytes, prefix="", encoding="base64"):
         s_ascii = base64.b16encode(s_bytes).decode('ascii').lower()
     else:
         raise NotImplementedError
-    return prefix+s_ascii
+    return prefix+s_ascii.encode('ascii')
 
 def from_ascii(s_ascii, prefix="", encoding="base64"):
     """This is the opposite of to_ascii. It will throw BadPrefixError if
@@ -72,11 +74,9 @@ def from_ascii(s_ascii, prefix="", encoding="base64"):
 class SigningKey(object):
     # this can only be used to reconstruct a key created by create_keypair().
     def __init__(self, sk_s, prefix="", encoding=None):
+        assert isinstance(sk_s, bytes)
         if not isinstance(prefix, bytes):
             prefix = prefix.encode('ascii')
-        if not isinstance(sk_s, bytes):
-            sk_s = sk_s.encode('ascii')
-        assert isinstance(sk_s, bytes)
         sk_s = remove_prefix(sk_s, prefix)
         if encoding is not None:
             sk_s = from_ascii(sk_s, encoding=encoding)
@@ -90,10 +90,14 @@ class SigningKey(object):
         self.vk_s = sk_s[32:] # just pubkey
 
     def to_bytes(self, prefix=""):
+        if not isinstance(prefix, bytes):
+            prefix = prefix.encode('ascii')
         return prefix+self.sk_s
 
     def to_ascii(self, prefix="", encoding=None):
         assert encoding
+        if not isinstance(prefix, bytes):
+            prefix = prefix.encode('ascii')
         return to_ascii(self.to_seed(), prefix, encoding)
 
     def to_seed(self, prefix=""):
@@ -111,6 +115,8 @@ class SigningKey(object):
 
     def sign(self, msg, prefix="", encoding=None):
         assert isinstance(msg, bytes)
+        if not isinstance(prefix, bytes):
+            prefix = prefix.encode('ascii')
         sig_and_msg = _ed25519.sign(msg, self.sk_s)
         # the response is R+S+msg
         sig_R = sig_and_msg[0:32]
@@ -137,10 +143,14 @@ class VerifyingKey(object):
         self.vk_s = vk_s
 
     def to_bytes(self, prefix=""):
+        if not isinstance(prefix, bytes):
+            prefix = prefix.encode('ascii')
         return prefix+self.vk_s
 
     def to_ascii(self, prefix="", encoding=None):
         assert encoding
+        if not isinstance(prefix, bytes):
+            prefix = prefix.encode('ascii')
         return to_ascii(self.vk_s, prefix, encoding)
 
     def __eq__(self, them):
@@ -151,6 +161,8 @@ class VerifyingKey(object):
     def verify(self, sig, msg, prefix="", encoding=None):
         if not isinstance(sig, bytes):
             sig = sig.encode('ascii')
+        if not isinstance(prefix, bytes):
+            prefix = prefix.encode('ascii')
         assert isinstance(sig, bytes)
         assert isinstance(msg, bytes)
         if encoding:
@@ -167,13 +179,13 @@ class VerifyingKey(object):
 
 def selftest():
     message = b"crypto libraries should always test themselves at powerup"
-    sk = SigningKey("priv0-VIsfn5OFGa09Un2MR6Hm7BQ5++xhcQskU2OGXG8jSJl4cWLZrRrVcSN2gVYMGtZT+3354J5jfmqAcuRSD9KIyg",
+    sk = SigningKey(b"priv0-VIsfn5OFGa09Un2MR6Hm7BQ5++xhcQskU2OGXG8jSJl4cWLZrRrVcSN2gVYMGtZT+3354J5jfmqAcuRSD9KIyg",
                     prefix="priv0-", encoding="base64")
-    vk = VerifyingKey("pub0-eHFi2a0a1XEjdoFWDBrWU/t9+eCeY35qgHLkUg/SiMo",
+    vk = VerifyingKey(b"pub0-eHFi2a0a1XEjdoFWDBrWU/t9+eCeY35qgHLkUg/SiMo",
                       prefix="pub0-", encoding="base64")
     assert sk.get_verifying_key() == vk
     sig = sk.sign(message, prefix="sig0-", encoding="base64")
-    assert sig == "sig0-E/QrwtSF52x8+q0l4ahA7eJbRKc777ClKNg217Q0z4fiYMCdmAOI+rTLVkiFhX6k3D+wQQfKdJYMxaTUFfv1DQ", sig
+    assert sig == b"sig0-E/QrwtSF52x8+q0l4ahA7eJbRKc777ClKNg217Q0z4fiYMCdmAOI+rTLVkiFhX6k3D+wQQfKdJYMxaTUFfv1DQ", sig
     vk.verify(sig, message, prefix="sig0-", encoding="base64")
 
 selftest()
