@@ -72,19 +72,19 @@ class Speed(Test):
         from timeit import main
         #t = timeit(setup="import ed25519", stmt="ed25519.create_keypair()", number=1000)
 
-        print " keypair generation:",
+        sys.stdout.write(" keypair generation")
         main(["-n", "1000",
               "-s", "import ed25519",
               "ed25519.create_keypair()"])
 
-	print " signing:",
+        sys.stdout.write(" signing:")
         main(["-n", "1000",
-              "-s", "import ed25519; sk,vk=ed25519.create_keypair(); msg='hello world'",
+              "-s", "import ed25519; sk,vk=ed25519.create_keypair(); msg=b'hello world'",
               "sk.sign(msg)"])
 
-        print " verifying:",
+        sys.stdout.write(" verifying:")
         main(["-n", "1000",
-              "-s", "import ed25519; sk,vk=ed25519.create_keypair(); msg='hello world'; sig=sk.sign(msg)",
+              "-s", "import ed25519; sk,vk=ed25519.create_keypair(); msg=b'hello world'; sig=sk.sign(msg)",
               "vk.verify(sig,msg)"])
 commands["speed"] = Speed
 
