@@ -7,6 +7,7 @@ versioneer.versionfile_source = "src/ed25519/_version.py"
 versioneer.versionfile_build = "ed25519/_version.py"
 versioneer.tag_prefix = ""
 versioneer.parentdir_prefix = "ed25519-"
+versioneer.VCS = "git"
 
 
 LONG_DESCRIPTION="""\
