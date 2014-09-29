@@ -5,7 +5,7 @@ include src/ed25519-supercop-ref/*.c src/ed25519-supercop-ref/*.h
 include src/ed25519-supercop-ref/Makefile src/ed25519-supercop-ref/*.data
 
 # basic metadata
-include MANIFEST.in LICENSE NEWS README.rst
+include MANIFEST.in LICENSE NEWS README.md
 
 # version-number-updating files
 include versioneer.py src/ed25519/_version.py
