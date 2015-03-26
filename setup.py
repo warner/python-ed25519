@@ -1,5 +1,5 @@
-
-import sys, os
+from __future__ import print_function
+import sys, os, timeit
 from distutils.core import setup, Extension, Command
 from distutils.util import get_platform
 import versioneer
@@ -70,23 +70,39 @@ class Speed(Test):
     description = "run benchmark suite"
     def run(self):
         self.setup_path()
-        from timeit import main
-        #t = timeit(setup="import ed25519", stmt="ed25519.create_keypair()", number=1000)
 
-        sys.stdout.write(" keypair generation")
-        main(["-n", "1000",
-              "-s", "import ed25519",
-              "ed25519.create_keypair()"])
+        def do(setup_statements, statement):
+            # extracted from timeit.py
+            t = timeit.Timer(stmt=statement,
+                             setup="\n".join(setup_statements))
+            # determine number so that 0.2 <= total time < 2.0
+            for i in range(1, 10):
+                number = 10**i
+                x = t.timeit(number)
+                if x >= 0.2:
+                    break
+            return x / number
 
-        sys.stdout.write(" signing:")
-        main(["-n", "1000",
-              "-s", "import ed25519; sk,vk=ed25519.create_keypair(); msg=b'hello world'",
-              "sk.sign(msg)"])
+        def abbrev(t):
+            if t > 1.0:
+                return "%.3fs" % t
+            if t > 1e-3:
+                return "%.2fms" % (t*1e3)
+            return "%.2fus" % (t*1e6)
 
-        sys.stdout.write(" verifying:")
-        main(["-n", "1000",
-              "-s", "import ed25519; sk,vk=ed25519.create_keypair(); msg=b'hello world'; sig=sk.sign(msg)",
-              "vk.verify(sig,msg)"])
+        S1 = "import ed25519; msg=b'hello world'"
+        S2 = "sk,vk = ed25519.create_keypair()"
+        S3 = "sig = sk.sign(msg)"
+        S4 = "vk.verify(sig, msg)"
+
+        generate = do([S1], S2)
+        sign = do([S1, S2], S3)
+        verify = do([S1, S2, S3], S4)
+
+        print("generate: %s" % abbrev(generate))
+        print("sign: %s" % abbrev(sign))
+        print("verify: %s" % abbrev(verify))
+
 commands["speed"] = Speed
 
 setup(name="ed25519",
