@@ -62,7 +62,7 @@ PyDoc_STRVAR(ed25519_sign_doc,
 "sign(message, signing_key)\n\
 \n\
 Return the concatenation of three parts: the 32-byte R signature value,\n\
-the original message, and the 32-byte S signature value.");
+the 32-byte S signature value, and the original message.");
 
 static PyObject *
 ed25519_sign(PyObject *self, PyObject *args)
