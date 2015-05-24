@@ -60,13 +60,13 @@ def from_ascii(s_ascii, prefix="", encoding="base64"):
         prefix = prefix.decode('ascii')
     s_ascii = remove_prefix(s_ascii.strip(), prefix)
     if encoding == "base64":
-        s_ascii += "="*((4 - len(s_ascii)%4)%4)
-        s_bytes = base64.b64decode(s_ascii)
+        s_ascii += "=" * ((4 - len(s_ascii) % 4) % 4)
+        s_bytes = base64.b64decode(s_ascii.encode('ascii'))
     elif encoding == "base32":
-        s_ascii += "="*((8 - len(s_ascii)%8)%8)
-        s_bytes = base64.b32decode(s_ascii.upper())
+        s_ascii += "=" * ((8 - len(s_ascii) % 8) % 8)
+        s_bytes = base64.b32decode(s_ascii.upper().encode('ascii'))
     elif encoding in ("base16", "hex"):
-        s_bytes = base64.b16decode(s_ascii.upper())
+        s_bytes = base64.b16decode(s_ascii.upper().encode('ascii'))
     else:
         raise NotImplementedError
     return s_bytes
