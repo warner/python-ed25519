@@ -5,6 +5,7 @@ python:
   - "3.3"
   - "3.4"
   - "pypy"
+  - "pypy3"
 install:
   - echo "no dependencies to install"
 script:
