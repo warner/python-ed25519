@@ -1,6 +1,12 @@
 
 User-Visible Changes in python-ed25519
 
+* Release 1.4 (03-Jul-2014)
+
+Added pypy3 compatibility, thanks to Miroslav Shubernetskiy. Updated to
+versioneer-0.15.
+
+
 * Release 1.3 (28-Sep-2014)
 
 Added python3.3/3.4 compatibility, thanks to Jan Gerber. According to our
