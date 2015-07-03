@@ -7,5 +7,5 @@ from .keys import (BadSignatureError, BadPrefixError,
  remove_prefix, to_ascii, from_ascii) # hush pyflakes
 
 from ._version import get_versions
-__version__ = get_versions()['version']
+__version__ = str(get_versions()['version'])
 del get_versions
