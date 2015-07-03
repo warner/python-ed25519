@@ -9,7 +9,7 @@ class KnownAnswerTests(unittest.TestCase):
         # different key format than the one used by NaCl.
         for i,line in enumerate(open("kat-ed25519.txt")):
             x = line.split(":")
-            A,B,C,D = [unhexlify(i) for i in x[:4]]
+            A,B,C,D = [unhexlify(i.encode("ascii")) for i in x[:4]]
             # A[:32] is the 32 byte seed (the entropy input to H())
             # A[32:] == B == the public point (pubkey)
             # C is the message
