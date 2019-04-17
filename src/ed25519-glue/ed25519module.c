@@ -54,8 +54,8 @@ ed25519_publickey(PyObject *self, PyObject *args)
         return NULL;
     crypto_sign_publickey(verfkey, signkey, seed);
     return Py_BuildValue("("y"#"y"#)",
-                         verfkey, PUBLICKEYBYTES,
-                         signkey, SECRETKEYBYTES);
+                         verfkey, (Py_ssize_t)PUBLICKEYBYTES,
+                         signkey, (Py_ssize_t)SECRETKEYBYTES);
 }
 
 PyDoc_STRVAR(ed25519_sign_doc,
