@@ -1,6 +1,17 @@
 
 User-Visible Changes in python-ed25519
 
+* Release 1.5 (01-Jun-2019)
+
+Fixed 64-bit windows compatibility, thanks to Theodore "okready" Cipicchio
+for the analysis and patch.
+
+Update test coverage to pythons 2.7, 3.4, 3.5, 3.6, and 3.7. Removed 2.6 and
+3.3.
+
+Recommend PyNaCl over this package: faster, better-maintained, more features.
+
+
 * Release 1.4 (03-Jul-2014)
 
 Added pypy3 compatibility, thanks to Miroslav Shubernetskiy. Updated to
@@ -100,12 +111,3 @@ help with version-checking and JSON encoding.
 The create_keypair() function now takes an entropy= argument, which is called
 just like os.urandom, and can be used to deterministically generate keys.
 This is most useful for unit tests.
-
-
-
-* org-mode configuration follows
-#+STARTUP: showall
-
-# Local Variables:
-# mode:org
-# End:
