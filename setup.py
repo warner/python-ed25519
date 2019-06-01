@@ -15,6 +15,17 @@ portable 'ref' code from the 'SUPERCOP' benchmarking suite.
 This system provides high (128-bit) security, short (32-byte) keys, short
 (64-byte) signatures, and fast (2-6ms) operation. Please see the README for
 more details.
+
+## Not Recommended For New Applications: Use pynacl Instead
+
+For new applications, I recommend you use
+[`pynacl`](https://github.com/pyca/pynacl) instead of this repository.
+`PyNaCl` is larger and takes longer to build (it contains the complete
+NaCl/libsodium library, not just the ed25519 portion), but it is
+well-maintained by the diligent and conscientious PyCA team, whereas I've
+allowed this repository to languish. `PyNaCl` is also about 10-20 times
+faster. A guide for migration fron `python-ed25519` to `PyNaCl` is included
+below.
 """
 
 sources = ["src/ed25519-glue/ed25519module.c"]
