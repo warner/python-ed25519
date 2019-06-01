@@ -242,7 +242,7 @@ import ed25519 import (create_keypair, | from nacl.signing import SigningKey, Ve
  SigningKey, VerifyingKey)             | from nacl.encoding import HexEncoder
                                        |
 sk,vk = ed25519.create_keypair()       | sk = SigningKey.generate()
-                                       | vk = sk.verify_key
+vk = sk.get_verifying_key()            | vk = sk.verify_key
                                        |
 sig = sk.sign(message)                 | sig = sk.sign(message).signature
 vk.verify(sig, message)                | msg = vk.verify(message, sig)
