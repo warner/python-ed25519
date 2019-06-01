@@ -1,3 +1,14 @@
+## Not Recommended For New Applications: Use pynacl Instead
+
+For new applications, I recommend you use
+[`pynacl`](https://github.com/pyca/pynacl) instead of this repository.
+`PyNaCl` is larger and takes longer to build (it contains the complete
+NaCl/libsodium library, not just the ed25519 portion), but it is
+well-maintained by the diligent and conscientious PyCA team, whereas I've
+allowed this repository to languish. `PyNaCl` is also about 10-20 times
+faster. A guide for migration fron `python-ed25519` to `PyNaCl` is included
+below.
+
 Python Bindings to the Ed25519 Digital Signature System
 =======================================================
 
@@ -33,11 +44,7 @@ key is trivial. Deriving a public verifying key takes more time, as do the
 actual signing and verifying operations.
 
 On my 2010-era Mac laptop (2.8GHz Core2Duo), deriving a verifying key takes
-1.9ms, signing takes 1.9ms, and verification takes 6.3ms. The
-high-performance assembly code in SUPERCOP (amd64-51-30k and amd64-64-24k) is
-up to 100x faster than the portable reference version, and the python
-overhead appears to be minimal (1-2us), so future releases may run even
-faster.
+1.9ms, signing takes 1.9ms, and verification takes 6.3ms.
 
 Ed25519 private signing keys are 32 bytes long (this seed is expanded to 64
 bytes when necessary). The public verifying keys are also 32 bytes long.
@@ -222,8 +229,95 @@ ascii = vk.to_ascii(prefix=, encoding=)
 vk = VerifyingKey(ascii, prefix=, encoding=)
 ```
 
+## Migrating To pynacl
 
+`PyNaCl` has a similar workflow: there are `SigningKey` and `VerifyKey`
+objects, and you can obtain the verifier from the signer. But the API is
+slightly different.
 
+```
+python-ed25519                         | PyNaCl
+                                       |
+import ed25519 import (create_keypair, | from nacl.signing import SigningKey, VerifyKey
+ SigningKey, VerifyingKey)             | from nacl.encoding import HexEncoder
+                                       |
+sk,vk = ed25519.create_keypair()       | sk = SigningKey.generate()
+                                       | vk = sk.verify_key
+                                       |
+sig = sk.sign(message)                 | sig = sk.sign(message).signature
+vk.verify(sig, message)                | msg = vk.verify(message, sig)
+# returns None or raises               | # returns message or raises
+# ed25519.BadSignatureError            | # nacl.exceptions.BadSignatureError
+                                       |
+sm = sk.sign(message)+message          | sm = sk.sign(message)
+vk.verify(sm[:64], sm[64:])            | msg = vk.verify(sm)
+msg = sm[64:]                          |
+                                       |
+seed = sk.to_seed()                    | seed = sk.encode()
+sk = SigningKey(seed)                  | sk = SigningKey(seed)
+bytes = sk.to_bytes()                  | no equivalent
+sk = SigningKey(bytes)                 | no equivalent
+hex = sk.to_ascii(encoding='hex')      | hex = sk.encode(HexEncoder())
+sk = SigningKey(hex, encoding='hex')   | sk = SigningKey(hex, HexEncoder())
+                                       |
+bytes = vk.to_bytes()                  | bytes = vk.encode()
+vk = VerifyingKey(bytes)               | vk = VerifyKey(bytes)
+hex = vk.to_ascii(encoding='hex')      | hex = vk.encode(HexEncoder())
+vk = VerifyingKey(hex, encoding='hex') | vk = VerifyKey(hex, HexEncoder)
+```
+
+The `PyNaCl` API has no equivalent of `SigningKey.to_bytes` (which returns
+the expanded internal 64-byte form of the private key). Instead, it only
+offers a way to get the 32-byte seed from which the expanded form is derived.
+The seed takes slightly more time to expand whenever a `SigningKey` object is
+created, but in practice the difference is trivial.
+
+It also doesn't include `python-ed25519`'s `prefix=` argument, which can be
+used to prepend/require/strip a short string (e.g. `pubkey-v1-`) in the front
+of each serialized key. These prefixes could be used to detect errors in
+which the wrong kind of string was used to build a `SigningKey` or
+`VerifyingKey` object, but this functionality is easy to add on top of the
+`PyNaCl` API.
+
+`python-ed25519`'s `sig = sk.sign(message)` returns 64 bytes with just the
+detached signature, and `vk.verify(sig, message)` must be given both this
+signature and the original message, as two separate arguments. As a result,
+when you send the signed message over a network message or store it in a
+file, you must deliver two things, not just one. The verifier either returns
+None or throws an exception.
+
+In contrast, `PyNaCl`'s `sm = sk.sign(message)` returns a special
+`SignedMessage` object. This inherits from the standard `bytes` type, and
+when you treat it as bytes, it contains the concatenation of the signature
+followed by the original message. In this form, you only have to deliver one
+thing over the wire. But it also has two special attributes: `sm.signature`
+contains just the 64-byte detached signature, and `sm.message` contains just
+the original message.
+
+`PyNaCl`'s `vk.verify()` can either accept a single `bytes` containing the
+concatenated signature+message as `vk.verify(sm)` (which is the equivalent of
+`vk.verify(sm.signature+sm.message)`), or it can accept them separately as
+`vk.verify(message, sig)` (note the inversion of arguments compared to
+`python-ed25519`). In either case, `vk.verify()` returns the original
+message, or throws an exception.
+
+In many cases, passing a composite "signed message" object over the wire is
+safer. This approach encourages a mindset in which there are two distinct
+types of objects: opaque signed things and unsigned bytes. The `sk.sign()`
+and `vk.verify()` functions convert one type into the other, and there is no
+way to even look at the message bytes until you pass it through the
+verification function. This reduces the temptation to let your program act
+upon unverified data. Compare this against the less-safe `python-ed25519`
+API, which makes it possible to comment out the signature verification
+(perhaps while debugging something) and still have an apparently-functional
+but now-fatally-insecure program.
+
+On the other hand, there are situations where you need a detached signature
+on some pre-existing object. Perhaps you have multiple parties all signing
+the same thing in parallel. Or you have a transport protocol in which the
+signature is computed over a combination of locally-managed sequence numbers
+and actual payloads from the network. In these cases you can use `PyNaCl`'s
+`sm.signature` attribute and the two-argument form of `vk.verify()`.
 
 [1]: http://ed25519.cr.yp.to/
 [2]: http://bench.cr.yp.to/supercop.html
