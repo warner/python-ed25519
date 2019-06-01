@@ -32,9 +32,9 @@ and RSA-3072.
 ## Dependencies
 
 This library includes a copy of all the C code necessary. You will need
-Python 2.x (2.6 or later) or Python 3.x (3.3 or later) and a C compiler. The
-tests are run automatically against python 2.6, 2.7, 3.3, 3.4, and pypy
-versions of Python 2.7 and 3.2.
+Python 2.7 or Python 3.x (3.4 or later) and a C compiler. The tests are run
+automatically against python 2.7, 3.4, 3.5, 3.6, 3.7, and pypy versions of
+Python 2.7 and 3.6.
 
 
 ## Speed and Key Sizes
