@@ -33,8 +33,8 @@ and RSA-3072.
 
 This library includes a copy of all the C code necessary. You will need
 Python 2.7 or Python 3.x (3.4 or later) and a C compiler. The tests are run
-automatically against python 2.7, 3.4, 3.5, 3.6, 3.7, and pypy versions of
-Python 2.7 and 3.6.
+automatically against python 2.7 and 3.4 onwards as well as pypy versions
+of Python 2.7 and 3.6 onwards.
 
 
 ## Speed and Key Sizes
