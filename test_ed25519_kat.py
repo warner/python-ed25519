@@ -29,15 +29,15 @@ class KnownAnswerTests(unittest.TestCase):
 
             sk = ed25519.SigningKey(seed)
             vk = sk.get_verifying_key()
-            self.failUnlessEqual(vk.to_bytes(), vk_s)
+            self.assertEqual(vk.to_bytes(), vk_s)
             vk2 = ed25519.VerifyingKey(vk_s)
-            self.failUnlessEqual(vk2, vk) # objects should compare equal
-            self.failUnlessEqual(vk2.to_bytes(), vk_s)
+            self.assertEqual(vk2, vk) # objects should compare equal
+            self.assertEqual(vk2.to_bytes(), vk_s)
             newsig = sk.sign(msg)
             sig_R,sig_S = sig[:32],sig[32:]
             newsig_R,newsig_S = newsig[:32],newsig[32:]
-            self.failUnlessEqual(hexlify(newsig), hexlify(sig)) # deterministic sigs
-            self.failUnlessEqual(vk.verify(sig, msg), None) # no exception
+            self.assertEqual(hexlify(newsig), hexlify(sig)) # deterministic sigs
+            self.assertIsNone(vk.verify(sig, msg)) # no exception
 
 
 if __name__ == '__main__':
